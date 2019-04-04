@@ -99,7 +99,7 @@ async def on_message(message):
             language = "language_" + message.content.replace("!iknow", "").lower()
             roleSet = 0
             for role in message.server.roles:
-                if language in role.name and language not in thisList:
+                if language in role.name:
                     print("uhhh we here")
                     await client.send_message(message.channel, message.author.name + " now knows " + language)
                     await client.add_roles(message.author, role)
@@ -110,6 +110,7 @@ async def on_message(message):
 
 
         # TODO Allow player to update character stats
+        # TODO Make sure character names are unique
         if message.content.startswith("!newCharacter"):
             characterName = message.content.replace("!newCharacter", "")
             character = Character(characterName, message.author)
