@@ -8,7 +8,31 @@ TOKEN = 'NTYzMDUxMTA2ODkzMDM3NTk4.XKTzBA.kCuGuv8Onok8NZZm1Q5TfPfrGAc'
 client = discord.Client()
 
 
-@client.event         
+# Character creation stuff
+characterDict = {}
+
+
+class Character:
+    def __init__(self, name, owner, active=0):
+        self.name = name
+        self.owner = owner
+        self.active = active
+
+    class Stats:
+        def __init__(self, stre=10, dex=10, con=10, inte=10, wis=10, cha=10):
+            self.strength = stre
+            self.dexterity = dex
+            self.constitution = con
+            self.intelligence = inte
+            self.wisdom = wis
+            self.charisma = cha
+
+    #class Skills:
+
+    #class Items:
+
+
+@client.event
 async def on_voice_state_update(before, after):
     isDM = False
     isPlayer = False
@@ -31,7 +55,7 @@ async def on_voice_state_update(before, after):
             print("moving ", member, " to: ", destChannel)
 
 
-@client.event         
+@client.event
 async def on_message(message):
     if message.author == client.user:
         return
@@ -43,7 +67,7 @@ async def on_message(message):
         if role.name == "Player":
             isPlayer = True
     # administrator/DM commands
-    if message.author.server_permissions.administrator or isDM:        
+    if message.author.server_permissions.administrator or isDM:
         if message.content.startswith("!registerLanguage"):
             channelname = "language_" + message.content.replace("!registerLanguage", "").lower()
             newChannel = await client.create_channel(message.server, channelname, type=discord.ChannelType.voice)
@@ -55,7 +79,7 @@ async def on_message(message):
             overwrite.connect = False
             # if there is a reason to make chats hidden until joined then uncomment this
             # overwrite.read_messages = False
-            
+
             for role in roles:
                 if role.is_everyone:
                     await client.edit_channel_permissions(newChannel, role, overwrite)
@@ -83,7 +107,39 @@ async def on_message(message):
                         break
                 if roleSet == 0:
                     await client.send_message(message.channel, "Do you speak english in what?")
-        
+
+
+        # 
+        if message.content.startswith("!newCharacter"):
+            characterName = message.content.replace("!newCharacter", "")
+            character = Character(characterName, message.author)
+            characterDict[characterName] = character
+            await client.send_message(message.channel, characterName + " has risen.")
+
+        if message.content.startswith("!active"):
+            characterName = message.content.replace("!active", "")
+            if characterName in characterDict:
+                if characterDict[characterName].owner == message.author:
+                    for character in characterDict:
+                        # set all other characters to inactive
+                        if characterDict[character].owner == message.author and characterDict[character].active == 1:
+                            characterDict[character].active = 0
+                    # set the specified character to active
+                    characterDict[characterName].active = 1
+                    await client.send_message(message.channel, characterName + " is now active.")
+                else:
+                    await client.send_message(message.channel, characterName + " is not one of your characters.")
+            else:
+                await client.send_message(message.channel, characterName + " does not exist.")
+
+# TODO be able to return a list of all of the characters owned by a specific user
+        if message.content.startswith("!characters"):
+            # shows all the characters that are owned by a user
+            user = message.content.replace("!characters", "")
+            for character in characterDict:
+                if characterDict[character].owner == user:
+                    await client.send_message(message.channel, user + " owns " + characterDict[character].name)
+
     # everyone commands
     if message.content.startswith("!help"):
         DMCommands = "DM Commands\n"
@@ -94,8 +150,7 @@ async def on_message(message):
         DMCommands + PlayerCommands
         await client.send_message(message.channel, DMCommands +PlayerCommands)
 
-
-@client.event         
+@client.event
 async def on_member_join(member):
     for role in member.server.roles:
         if role.name == "Player":
