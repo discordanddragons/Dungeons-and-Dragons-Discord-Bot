@@ -3,6 +3,8 @@ import discord
 import asyncio
 TOKEN = 'NTYzMDUxMTA2ODkzMDM3NTk4.XKTzBA.kCuGuv8Onok8NZZm1Q5TfPfrGAc'
 
+# TODO Still need to do some role stuff to make sure people can't join things that they shouldn't be able to
+
 client = discord.Client()
 
 @client.event         
@@ -56,19 +58,34 @@ async def on_message(message):
                 if role.is_everyone:
                     await client.edit_channel_permissions(newChannel, role, overwrite)
                     break
-    else:
-        #player specific commands
-        if message.content.startswith("!registerLanguage"):
-            print("check that the language role already exists, and add the appropriate role to the user")
+
+    if isPlayer:
+        # player specific commands
+        # print("check that the language role already exists, and add the appropriate role to the user")
+        if message.content.startswith("!iknow"):
+            language = message.content.replace("!iknow", "").strip()
+            thisList = ["DM", "Player", "admin"]
+            roleSet = 0
+            for server in client.servers:
+                for role in server.roles:
+                    if language in role.name and language not in thisList:
+                        await client.send_message(message.channel, message.author.name + " now knows " + language)
+                        await client.add_roles(message.author, role)
+                        roleSet = 1
+                        break
+                if roleSet == 0:
+                    await client.send_message(message.channel, "Do you speak english in what?")
         
-    #everyone commands
+    # everyone commands
     if message.content.startswith("!help"):
         DMCommands = "DM Commands\n"
-        DMCommands += "!registerLanguage language_name \n\t- Adds a language channel, users must know this laguage in order to join this voice channel\n"
+        DMCommands += "!registerLanguage language_name \n\t- Adds a language channel, " \
+                      "users must know this language in order to join this voice channel\n"
         PlayerCommands = "Player Commands\n"
         PlayerCommands += "!registerLanguage language_name \n\t- Adds your player to the language role\n"
         DMCommands + PlayerCommands
         await client.send_message(message.channel, DMCommands +PlayerCommands)
+
 
 @client.event         
 async def on_member_join(member):
