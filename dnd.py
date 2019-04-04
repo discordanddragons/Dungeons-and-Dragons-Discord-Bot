@@ -143,13 +143,13 @@ async def on_message(message):
                   
     # everyone commands
     if message.content.startswith("!help"):
-        DMCommands = "DM Commands\n"
-        DMCommands += "!registerLanguage language_name \n\t- Adds a language channel, users must know this language in order to join this voice channel\n"
-        DMCommands += "!deleteLanguage language_name \n\t- Removes language channel and roles associated to that language\n"
-        PlayerCommands = "Player Commands\n"
-        PlayerCommands += "!iknow language_name \n\t- Adds your player to the language role\n"
-        DMCommands + PlayerCommands
-        await client.send_message(message.channel, DMCommands +PlayerCommands)
+        helpDM = "DM Commands\n"
+        helpDM += "!registerLanguage language_name \n\t- Adds a language channel, users must know this language in order to join this voice channel\n"
+        helpDM += "!deleteLanguage language_name \n\t- Removes language channel and roles associated to that language\n"
+        helpPlayer = "Player Commands\n"
+        helpPlayer += "!iknow language_name \n\t- Adds your player to the language role\n"
+        output = helpDM + helpPlayer
+        await client.send_message(message.channel, output)
 
 @client.event
 async def on_member_join(member):
@@ -163,23 +163,23 @@ async def on_ready():
         # first ensure that the roles exist for DM and players
         hasDM = False
         hasPlayer = False
-        DMRole = None
-        PlayerRole = None
+        roleDM = None
+        rolePlayer = None
         for role in server.roles:
             if role.name == "DM":
-                DMRole = role
+                roleDM = role
                 hasDM = True
             elif role.name == "Player":
-                PlayerRole = role
+                rolePlayer = role
                 hasPlayer = True
         if hasDM == False:
-            DMRole = await client.create_role(server, name="DM")
+            roleDM = await client.create_role(server, name="DM")
         if hasPlayer == False:
-            PlayerRole = await client.create_role(server, name="Player")
+            rolePlayer = await client.create_role(server, name="Player")
         # now that the roles exist give the DM role to the creator of the sever, and player to all other members
         for member in client.get_all_members():
             if member.server_permissions.administrator:
-                await client.add_roles(member, DMRole)
+                await client.add_roles(member, roleDM)
             else:
-                await client.add_roles(member, PlayerRole)
+                await client.add_roles(member, rolePlayer)
 client.run(TOKEN)
