@@ -98,15 +98,15 @@ async def on_message(message):
         if message.content.startswith("!iknow"):
             language = "language_" + message.content.replace("!iknow", "").lower()
             roleSet = 0
-            for server in client.servers:
-                for role in server.roles:
-                    if language in role.name:
-                        await client.send_message(message.channel, message.author.name + " now knows " + language[9:])
-                        await client.add_roles(message.author, role)
-                        roleSet = 1
-                        break
-                if roleSet == 0:
-                    await client.send_message(message.channel, "Do you speak english in what?")
+            for role in message.server.roles:
+                if language in role.name and language not in thisList:
+                    print("uhhh we here")
+                    await client.send_message(message.channel, message.author.name + " now knows " + language)
+                    await client.add_roles(message.author, role)
+                    roleSet = 1
+                    break
+            if roleSet == 0:
+                await client.send_message(message.channel, "Do you speak english in what?")
 
 
         # TODO Allow player to update character stats
@@ -139,7 +139,7 @@ async def on_message(message):
             for character in characterDict:
                 if characterDict[character].owner == user:
                     await client.send_message(message.channel, user + " owns " + characterDict[character].name)
-
+                  
     # everyone commands
     if message.content.startswith("!help"):
         DMCommands = "DM Commands\n"
