@@ -64,7 +64,7 @@ async def on_message(message):
         # print("check that the language role already exists, and add the appropriate role to the user")
         if message.content.startswith("!iknow"):
             language = message.content.replace("!iknow", "").strip()
-            thisList = ["DM", "Player", "admin"]
+            thisList = ["DM", "Player", "admin", "bot"]
             roleSet = 0
             for server in client.servers:
                 for role in server.roles:
