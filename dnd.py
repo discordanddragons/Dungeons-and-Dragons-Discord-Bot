@@ -109,7 +109,7 @@ async def on_message(message):
                     await client.send_message(message.channel, "Do you speak english in what?")
 
 
-        # 
+        # TODO Allow player to update character stats
         if message.content.startswith("!newCharacter"):
             characterName = message.content.replace("!newCharacter", "")
             character = Character(characterName, message.author)
