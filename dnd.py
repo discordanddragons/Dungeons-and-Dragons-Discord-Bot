@@ -66,15 +66,15 @@ async def on_message(message):
             language = message.content.replace("!iknow", "").strip()
             thisList = ["DM", "Player", "admin"]
             roleSet = 0
-            for server in client.servers:
-                for role in server.roles:
-                    if language in role.name and language not in thisList:
-                        await client.send_message(message.channel, message.author.name + " now knows " + language)
-                        await client.add_roles(message.author, role)
-                        roleSet = 1
-                        break
-                if roleSet == 0:
-                    await client.send_message(message.channel, "Do you speak english in what?")
+            for role in message.server.roles:
+                if language in role.name and language not in thisList:
+                    print("uhhh we here")
+                    await client.send_message(message.channel, message.author.name + " now knows " + language)
+                    await client.add_roles(message.author, role)
+                    roleSet = 1
+                    break
+            if roleSet == 0:
+                await client.send_message(message.channel, "Do you speak english in what?")
         
     # everyone commands
     if message.content.startswith("!help"):
