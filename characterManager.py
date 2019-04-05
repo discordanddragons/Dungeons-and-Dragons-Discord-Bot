@@ -66,13 +66,14 @@ class Character:
         self.owner = owner
         self.active = active
         self.stats = Stats()
-        self.health = 10
-        self.characterClass = ""
+        self.maxHealth = 10
+        self.currentHealth = 10
+        self.characterClass = "Not Set"
         self.level = 1
-        self.race = ""
+        self.race = "Not Set"
         self.gold = 0
-        self.description = ""
-        self.alignment = ""
+        self.description = "Not Set"
+        self.alignment = "Not Set"
         self.languages = []
 
 

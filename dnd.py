@@ -92,14 +92,26 @@ async def on_message(message):
                         for language in characters.getLanguages(character):
                             await client.send_message(message.channel, character + " knows " + str(language)[9:])
 
-                    if message.content.startswith("!info"):
+                    if message.content.startswith("!me"):
                         #Gets users active character info
+                        await client.send_message(message.channel,
+                                                  "Character Name: " + characters.characters[character].name)
+                        await client.send_message(message.channel,
+                                                  "Class: " + characters.characters[character].characterClass)
+                        await client.send_message(message.channel,
+                                                  "Level: " + str(characters.characters[character].level))
+                        await client.send_message(message.channel,
+                                                  "Health: " + str(characters.characters[character].currentHealth) + "/" + str(characters.characters[character].maxHealth))
+                        await client.send_message(message.channel,
+                                                  "Race: " + characters.characters[character].race)
+                        await client.send_message(message.channel,
+                                                  "Gold: " + str(characters.characters[character].gold))
                         for language in characters.getLanguages(character):
                             await client.send_message(message.channel, character + " knows " + str(language)[9:])
 
             # TODO Allow player to update character stats
-            if message.content.startswith("!newCharacter "):
-                characterName = message.content.replace("!newCharacter ", "")
+            if message.content.lower().startswith("!newcharacter ") or message.content.lower().startswith("!newchar "):
+                characterName = message.content.lower().replace("!newcharacter ", "").replace("!newchar ", "").capitalize()
                 if characters.addCharacter(characterName, message.author):
                     print("Created", characterName)
                     await client.send_message(message.channel, characterName + " has risen.")
