@@ -81,6 +81,7 @@ async def on_message(message):
                             if language in role.name:
                                 characters.setLanguages(character, role)
                                 await client.send_message(message.channel, characters.getName(character) + " now knows " + language[9:])
+                                print("Adding", message.author, "to", role)
                                 await client.add_roles(message.author, role)
                                 roleSet = 1
                                 break
@@ -91,10 +92,16 @@ async def on_message(message):
                         for language in characters.getLanguages(character):
                             await client.send_message(message.channel, character + " knows " + str(language)[9:])
 
+                    if message.content.startswith("!info"):
+                        #Gets users active character info
+                        for language in characters.getLanguages(character):
+                            await client.send_message(message.channel, character + " knows " + str(language)[9:])
+
             # TODO Allow player to update character stats
             if message.content.startswith("!newCharacter "):
                 characterName = message.content.replace("!newCharacter ", "")
                 if characters.addCharacter(characterName, message.author):
+                    print("Created", characterName)
                     await client.send_message(message.channel, characterName + " has risen.")
                 else:
                     await client.send_message(message.channel, characterName + " was already made.")
@@ -102,18 +109,19 @@ async def on_message(message):
             if message.content.startswith("!active "):
                 characterName = message.content.replace("!active ", "")
                 if characters.setActive(characterName, message.author):
-                    #TODO does not properly remove roles from user
+                    #TODO does not properly remove roles from user the first time, it works after switching back and forth a couple times
 
                     # remove user from all language roles
                     for role in message.server.roles:
                         if str(role).startswith("language_"):
+                            print("removing", message.author, "from", role)
                             await client.remove_roles(message.author, role)
 
-                    # Add user to the languages for that active character
                     await client.send_message(message.channel, characterName + " is now active.")
-                    await client.send_message(message.channel, "Moving you to the right roles")
-                    languageList = characters.getLanguages(characterName)
-                    for language in languageList:
+
+                    # Add user to the languages for that active character
+                    for language in characters.getLanguages(characterName):
+                        print("Adding", message.author, "to", role)
                         await client.add_roles(message.author, language)
                 else:
                     await client.send_message(message.channel, characterName + " could not be set as active")

@@ -35,7 +35,6 @@ class characterManager:
     def getLanguages(self, characterName):
         knownLanguages = []
         for language in self.characters[characterName].languages:
-            print(language)
             knownLanguages.append(language)
         return knownLanguages
 
@@ -50,6 +49,16 @@ class characterManager:
 
     def getName(self, characterName):
         return self.characters[characterName].name
+
+    def getGold(self, characterName):
+        return self.characters[characterName].gold
+
+    def getHealth(self, characterName):
+        return self.characters[characterName].health
+
+    def getClass(self, characterName):
+        return self.characters[characterName].characterClass
+
 
 class Character:
     def __init__(self, name, owner, active):
@@ -75,6 +84,9 @@ class Stats:
         self.intelligence = inte
         self.wisdom = wis
         self.charisma = cha
+
+
+#class characterClass:
 
 #class Skills:
 
