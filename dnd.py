@@ -94,20 +94,21 @@ async def on_message(message):
 
                     if message.content.startswith("!me"):
                         #Gets users active character info
-                        await client.send_message(message.channel,
+                        # TODO figure out how to format messages on a bot. This output sucks ass
+                        await client.send_message(message.author,
                                                   "Character Name: " + characters.characters[character].name)
-                        await client.send_message(message.channel,
+                        await client.send_message(message.author,
                                                   "Class: " + characters.characters[character].characterClass)
-                        await client.send_message(message.channel,
+                        await client.send_message(message.author,
                                                   "Level: " + str(characters.characters[character].level))
-                        await client.send_message(message.channel,
+                        await client.send_message(message.author,
                                                   "Health: " + str(characters.characters[character].currentHealth) + "/" + str(characters.characters[character].maxHealth))
-                        await client.send_message(message.channel,
+                        await client.send_message(message.author,
                                                   "Race: " + characters.characters[character].race)
-                        await client.send_message(message.channel,
+                        await client.send_message(message.author,
                                                   "Gold: " + str(characters.characters[character].gold))
                         for language in characters.getLanguages(character):
-                            await client.send_message(message.channel, character + " knows " + str(language)[9:])
+                            await client.send_message(message.author, character + " knows " + str(language)[9:])
 
             # TODO Allow player to update character stats
             if message.content.lower().startswith("!newcharacter ") or message.content.lower().startswith("!newchar "):
@@ -118,10 +119,11 @@ async def on_message(message):
                 else:
                     await client.send_message(message.channel, characterName + " was already made.")
 
-            if message.content.startswith("!active "):
-                characterName = message.content.replace("!active ", "")
+            if message.content.lower().startswith("!active ") or message.content.lower().startswith("!set "):
+                characterName = message.content.lower().replace("!active ", "").replace("!set ", "").capitalize()
                 if characters.setActive(characterName, message.author):
-                    #TODO does not properly remove roles from user the first time, it works after switching back and forth a couple times
+                    #TODO does not properly remove roles from user the first time, it works after switching back and
+                    # forth a couple times
 
                     # remove user from all language roles
                     for role in message.server.roles:
@@ -146,12 +148,14 @@ async def on_message(message):
                     await client.send_message(message.channel, name + " owns " + character)
 
     # everyone commands
-    if message.content.startswith("!help"):
+    if message.content.lower().startswith("!help") or message.content.lower().startswith("!h"):
         helpDM = "DM Commands\n"
         helpDM += "!registerLanguage language_name \n\t- Adds a language channel, users must know this language in order to join this voice channel\n"
         helpDM += "!deleteLanguage language_name \n\t- Removes language channel and roles associated to that language\n"
         helpPlayer = "Player Commands\n"
         helpPlayer += "!iknow language_name \n\t- Adds your player to the language role\n"
+        helpPlayer += "!newChar or !newCharacter character_name \n\t- Creates a new character with that name\n"
+        helpPlayer += "!active character_name \n\t- Sets your active character to that character\n"
         output = helpDM + helpPlayer
         await client.send_message(message.channel, output)
 
