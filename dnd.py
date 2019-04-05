@@ -1,6 +1,10 @@
 # Work with Python 3.6
 import discord
+from random import randint
+import re
+
 from characterManager import characterManager
+from characterManager import Utility
 TOKEN = 'NTYzMDUxMTA2ODkzMDM3NTk4.XKTzBA.kCuGuv8Onok8NZZm1Q5TfPfrGAc'
 
 # TODO Still need to do some role stuff to make sure people can't join things that they shouldn't be able to
@@ -10,6 +14,7 @@ client = discord.Client()
 
 # Character creation stuff
 characters = characterManager()
+utility = Utility()
 
 @client.event
 async def on_voice_state_update(before, after):
@@ -73,14 +78,16 @@ async def on_message(message):
         if message.content.startswith("!"):
             temp = characters.getCharacters(message.author)
             for character in temp:
-                if message.author == characters.getOwner(character) and characters.getActive(character) is True:
+                if message.author == characters.characters[character].owner \
+                        and characters.characters[character].active is True:
                     if message.content.startswith("!iknow "):
                         language = "language_" + message.content.replace("!iknow ", "").lower()
                         roleSet = 0
                         for role in message.server.roles:
                             if language in role.name:
                                 characters.setLanguages(character, role)
-                                await client.send_message(message.channel, characters.getName(character) + " now knows " + language[9:])
+                                await client.send_message(message.channel, characters.characters[character].name +
+                                                          " now knows " + language[9:])
                                 print("Adding", message.author, "to", role)
                                 await client.add_roles(message.author, role)
                                 roleSet = 1
@@ -102,7 +109,8 @@ async def on_message(message):
                         await client.send_message(message.author,
                                                   "Level: " + str(characters.characters[character].level))
                         await client.send_message(message.author,
-                                                  "Health: " + str(characters.characters[character].currentHealth) + "/" + str(characters.characters[character].maxHealth))
+                                                  "Health: " + str(characters.characters[character].currentHealth) +
+                                                  "/" + str(characters.characters[character].maxHealth))
                         await client.send_message(message.author,
                                                   "Race: " + characters.characters[character].race)
                         await client.send_message(message.author,
@@ -110,9 +118,21 @@ async def on_message(message):
                         for language in characters.getLanguages(character):
                             await client.send_message(message.author, character + " knows " + str(language)[9:])
 
+                        for stat in characters.characters[character].attributes.stats:
+                            await client.send_message(message.author, stat + ": " +
+                                                      str(characters.characters[character].attributes.stats[stat]))
+
+                    if message.content.startswith("!set"):
+                        #Allow the user to set whatever they want
+                        # !set strength 16
+                        thing = message.content.lower().replace("!set", "").split()
+                        utility.set(character, thing[0], thing[1])
+
+
             # TODO Allow player to update character stats
             if message.content.lower().startswith("!newcharacter ") or message.content.lower().startswith("!newchar "):
-                characterName = message.content.lower().replace("!newcharacter ", "").replace("!newchar ", "").capitalize()
+                characterName = \
+                    message.content.lower().replace("!newcharacter ", "").replace("!newchar ", "").capitalize()
                 if characters.addCharacter(characterName, message.author):
                     print("Created", characterName)
                     await client.send_message(message.channel, characterName + " has risen.")
@@ -150,7 +170,8 @@ async def on_message(message):
     # everyone commands
     if message.content.lower().startswith("!help") or message.content.lower().startswith("!h"):
         helpDM = "DM Commands\n"
-        helpDM += "!registerLanguage language_name \n\t- Adds a language channel, users must know this language in order to join this voice channel\n"
+        helpDM += "!registerLanguage language_name \n\t- Adds a language channel, users must know this language in " \
+                  "order to join this voice channel\n"
         helpDM += "!deleteLanguage language_name \n\t- Removes language channel and roles associated to that language\n"
         helpPlayer = "Player Commands\n"
         helpPlayer += "!iknow language_name \n\t- Adds your player to the language role\n"
@@ -159,6 +180,25 @@ async def on_message(message):
         output = helpDM + helpPlayer
         await client.send_message(message.channel, output)
 
+    if message.content.lower().startswith("!roll") or message.content.lower().startswith("!r") \
+            and "d" in message.content:
+        dice = message.content.lower().replace("!roll", "").replace(" ", "")
+        diceSplit = re.findall(r"(\d+)d(\d+)", dice)
+        rollNumber = int(diceSplit[0][0])
+        diceSize = int(diceSplit[0][1])
+        rolls = utility.roll(rollNumber, diceSize)
+
+        if len(rolls) == 0:
+            print("Please roll a number of dice between 1 and 10000")
+        else:
+            for index, roll in enumerate(rolls):
+                print("Roll #", index, ":", roll)
+                await client.send_message(message.channel, "Roll #" + index + ": " + roll)
+
+    if message.content.lower().startswith("!flip"):
+        flip = utility.flip()
+        print(flip)
+        await client.send_message(message.channel, flip)
 
 
 @client.event
