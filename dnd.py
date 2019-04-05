@@ -44,8 +44,8 @@ async def on_message(message):
             isPlayer = True
     # administrator/DM commands
     if message.author.server_permissions.administrator or isDM:
-        if message.content.startswith("!registerLanguage"):
-            channelname = "language_" + message.content.replace("!registerLanguage", "").lower()
+        if message.content.startswith("!registerLanguage "):
+            channelname = "language_" + message.content.replace("!registerLanguage ", "").lower()
             newChannel = await client.create_channel(message.server, channelname, type=discord.ChannelType.voice)
             role = await client.create_role(message.server, name=channelname)
             newRole = await client.add_roles(message.author, role)
@@ -61,8 +61,8 @@ async def on_message(message):
                     await client.edit_channel_permissions(newChannel, role, overwrite)
                     break
 
-        if message.content.startswith("!removeLanguage"):
-            language = "language_" + message.content.replace("!registerLanguage", "").lower()
+        if message.content.startswith("!removeLanguage "):
+            language = "language_" + message.content.replace("!registerLanguage ", "").lower()
             for server in client.servers:
                 client.delete_role(server, language)
                 client.delete_channel(language)
@@ -70,43 +70,60 @@ async def on_message(message):
 
     if isPlayer:
         # player specific commands
-        # print("check that the language role already exists, and add the appropriate role to the user")
-        if message.content.startswith("!iknow"):
-            language = "language_" + message.content.replace("!iknow", "").lower()
-            roleSet = 0
-            for role in message.server.roles:
-                if language in role.name:
-                    print("uhhh we here")
-                    await client.send_message(message.channel, message.author.name + " now knows " + language)
-                    await client.add_roles(message.author, role)
-                    roleSet = 1
-                    break
-            if roleSet == 0:
-                await client.send_message(message.channel, "Do you speak english in what?")
+        if message.content.startswith("!"):
+            temp = characters.getCharacters(message.author)
+            for character in temp:
+                if message.author == characters.getOwner(character) and characters.getActive(character) is True:
+                    if message.content.startswith("!iknow "):
+                        language = "language_" + message.content.replace("!iknow ", "").lower()
+                        roleSet = 0
+                        for role in message.server.roles:
+                            if language in role.name:
+                                characters.setLanguages(character, role)
+                                await client.send_message(message.channel, characters.getName(character) + " now knows " + language[9:])
+                                await client.add_roles(message.author, role)
+                                roleSet = 1
+                                break
+                        if roleSet == 0:
+                            await client.send_message(message.channel, "Do you speak english in what?")
 
+                    if message.content.startswith("!languages"):
+                        for language in characters.getLanguages(character):
+                            await client.send_message(message.channel, character + " knows " + str(language)[9:])
 
-        # TODO Allow player to update character stats
-        # TODO Make sure character names are unique
-        if message.content.startswith("!newCharacter"):
-            characterName = message.content.replace("!newCharacter", "")
-            if characters.addCharacter(characterName,message.author):
-                await client.send_message(message.channel, characterName + " has risen.")
+            # TODO Allow player to update character stats
+            if message.content.startswith("!newCharacter "):
+                characterName = message.content.replace("!newCharacter ", "")
+                if characters.addCharacter(characterName, message.author):
+                    await client.send_message(message.channel, characterName + " has risen.")
+                else:
+                    await client.send_message(message.channel, characterName + " was already made.")
 
-        if message.content.startswith("!active"):
-            characterName = message.content.replace("!active", "")
-            if characters.setActive(characterName, message.author):
-                await client.send_message(message.channel, characterName + " is now active.")
-            else:
-                await client.send_message(message.channel, characterName + " could not be set as active")
+            if message.content.startswith("!active "):
+                characterName = message.content.replace("!active ", "")
+                if characters.setActive(characterName, message.author):
+                    #TODO does not properly remove roles from user
 
-# TODO be able to return a list of all of the characters owned by a specific user
-        if message.content.startswith("!characters"):
-            user = message.author
-            # shows all the characters that are owned by a user
-            name  = str(user)
-            for character in characters.getCharacters(user):
-                await client.send_message(message.channel, name + " owns " + character)
+                    # remove user from all language roles
+                    for role in message.server.roles:
+                        if str(role).startswith("language_"):
+                            await client.remove_roles(message.author, role)
 
+                    # Add user to the languages for that active character
+                    await client.send_message(message.channel, characterName + " is now active.")
+                    await client.send_message(message.channel, "Moving you to the right roles")
+                    languageList = characters.getLanguages(characterName)
+                    for language in languageList:
+                        await client.add_roles(message.author, language)
+                else:
+                    await client.send_message(message.channel, characterName + " could not be set as active")
+
+            if message.content.startswith("!characters"):
+                user = message.author
+                # shows all the characters that are owned by a user
+                name = str(user)
+                for character in characters.getCharacters(user):
+                    await client.send_message(message.channel, name + " owns " + character)
 
     # everyone commands
     if message.content.startswith("!help"):
@@ -117,6 +134,8 @@ async def on_message(message):
         helpPlayer += "!iknow language_name \n\t- Adds your player to the language role\n"
         output = helpDM + helpPlayer
         await client.send_message(message.channel, output)
+
+
 
 @client.event
 async def on_member_join(member):

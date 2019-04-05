@@ -9,10 +9,10 @@ class characterManager:
         return False
 
     def addCharacter(self, name, owner):
-        #False for already exists True for successfully created character
+        # False for already exists True for successfully created character
         if self.characterExists(name):
             return False
-        self.characters[name] = Character(name,owner,False)
+        self.characters[name] = Character(name, owner, False)
         return True
 
     def setActive(self, name, owner):
@@ -32,13 +32,40 @@ class characterManager:
                 ownersCharacters.append(character)
         return ownersCharacters
 
+    def getLanguages(self, characterName):
+        knownLanguages = []
+        for language in self.characters[characterName].languages:
+            print(language)
+            knownLanguages.append(language)
+        return knownLanguages
+
+    def setLanguages(self, characterName, language):
+        self.characters[characterName].languages.append(language)
+
+    def getOwner(self, characterName):
+        return self.characters[characterName].owner
+
+    def getActive(self, characterName):
+        return self.characters[characterName].active
+
+    def getName(self, characterName):
+        return self.characters[characterName].name
 
 class Character:
-    def __init__(self, name, owner, active=0):
+    def __init__(self, name, owner, active):
         self.name = name
         self.owner = owner
         self.active = active
         self.stats = Stats()
+        self.health = 10
+        self.characterClass = ""
+        self.level = 1
+        self.race = ""
+        self.gold = 0
+        self.description = ""
+        self.alignment = ""
+        self.languages = []
+
 
 class Stats:
     def __init__(self, stre=10, dex=10, con=10, inte=10, wis=10, cha=10):
