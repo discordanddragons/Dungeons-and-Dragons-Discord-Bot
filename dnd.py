@@ -89,7 +89,7 @@ async def on_message(message):
         # TODO Make sure character names are unique
         if message.content.startswith("!newCharacter"):
             characterName = message.content.replace("!newCharacter", "")
-            if characters.add(characterName,message.author):
+            if characters.addCharacter(characterName,message.author):
                 await client.send_message(message.channel, characterName + " has risen.")
 
         if message.content.startswith("!active"):
@@ -101,10 +101,11 @@ async def on_message(message):
 
 # TODO be able to return a list of all of the characters owned by a specific user
         if message.content.startswith("!characters"):
-            user = message.content.replace("!characters", "")
+            user = message.author
             # shows all the characters that are owned by a user
+            name  = str(user)
             for character in characters.getCharacters(user):
-                await client.send_message(message.channel, user + " owns " + characterDict[character].name)
+                await client.send_message(message.channel, name + " owns " + character)
 
 
     # everyone commands
