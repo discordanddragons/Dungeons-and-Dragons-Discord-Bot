@@ -1,6 +1,6 @@
 # Work with Python 3.6
 import discord
-import asyncio
+from characterManager import characterManager
 TOKEN = 'NTYzMDUxMTA2ODkzMDM3NTk4.XKTzBA.kCuGuv8Onok8NZZm1Q5TfPfrGAc'
 
 # TODO Still need to do some role stuff to make sure people can't join things that they shouldn't be able to
@@ -9,38 +9,14 @@ client = discord.Client()
 
 
 # Character creation stuff
-characterDict = {}
-
-
-class Character:
-    def __init__(self, name, owner, active=0):
-        self.name = name
-        self.owner = owner
-        self.active = active
-
-    class Stats:
-        def __init__(self, stre=10, dex=10, con=10, inte=10, wis=10, cha=10):
-            self.strength = stre
-            self.dexterity = dex
-            self.constitution = con
-            self.intelligence = inte
-            self.wisdom = wis
-            self.charisma = cha
-
-    #class Skills:
-
-    #class Items:
-
+characters = characterManager()
 
 @client.event
 async def on_voice_state_update(before, after):
     isDM = False
     isPlayer = False
     for role in before.roles:
-        print(role.name)
-        if role.name == "Bots":
-            return
-        elif role.name == "DM":
+        if role.name == "DM":
             isDM = True
         elif role.name == "Player":
             isPlayer = True
@@ -113,34 +89,24 @@ async def on_message(message):
         # TODO Make sure character names are unique
         if message.content.startswith("!newCharacter"):
             characterName = message.content.replace("!newCharacter", "")
-            character = Character(characterName, message.author)
-            characterDict[characterName] = character
-            await client.send_message(message.channel, characterName + " has risen.")
+            if characters.add(characterName,message.author):
+                await client.send_message(message.channel, characterName + " has risen.")
 
         if message.content.startswith("!active"):
             characterName = message.content.replace("!active", "")
-            if characterName in characterDict:
-                if characterDict[characterName].owner == message.author:
-                    for character in characterDict:
-                        # set all other characters to inactive
-                        if characterDict[character].owner == message.author and characterDict[character].active == 1:
-                            characterDict[character].active = 0
-                    # set the specified character to active
-                    characterDict[characterName].active = 1
-                    await client.send_message(message.channel, characterName + " is now active.")
-                else:
-                    await client.send_message(message.channel, characterName + " is not one of your characters.")
+            if characters.setActive(characterName, message.author):
+                await client.send_message(message.channel, characterName + " is now active.")
             else:
-                await client.send_message(message.channel, characterName + " does not exist.")
+                await client.send_message(message.channel, characterName + " could not be set as active")
 
 # TODO be able to return a list of all of the characters owned by a specific user
         if message.content.startswith("!characters"):
-            # shows all the characters that are owned by a user
             user = message.content.replace("!characters", "")
-            for character in characterDict:
-                if characterDict[character].owner == user:
-                    await client.send_message(message.channel, user + " owns " + characterDict[character].name)
-                  
+            # shows all the characters that are owned by a user
+            for character in characters.getCharacters(user):
+                await client.send_message(message.channel, user + " owns " + characterDict[character].name)
+
+
     # everyone commands
     if message.content.startswith("!help"):
         helpDM = "DM Commands\n"
