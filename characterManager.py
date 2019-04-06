@@ -68,7 +68,7 @@ class Character:
         self.stats = Stats()
         self.maxHealth = 10
         self.currentHealth = 10
-        self.characterClass = characterClass("barbarian")
+        self.characterClass = "Not Set"
         self.level = 1
         self.race = "Not Set"
         self.gold = 0
@@ -86,17 +86,9 @@ class Stats:
         self.wisdom = wis
         self.charisma = cha
 
-# TODO need to get all class / class info from website
-class characterClass:
-    classes = ("barbarian", "bard", "cleric", "druid", "fighter", "monk", "paladin",
-               "ranger", "rogue", "sorcerer", "warlock", "wizard")
 
-    def __init__(self, className):
-        if className not in self.classes:
-            raise ValueError("%s is not a valid class." % className)
-        self.characterClass = className
+#class characterClass:
 
-# TODO need to get all skills form website
 #class Skills:
 
 #class Items:
