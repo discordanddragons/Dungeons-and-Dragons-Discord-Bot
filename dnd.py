@@ -118,9 +118,9 @@ async def on_message(message):
                         for language in characters.getLanguages(character):
                             await client.send_message(message.author, character + " knows " + str(language)[9:])
 
-                        for stat in characters.characters[character].attributes.stats:
-                            await client.send_message(message.author, stat + ": " +
-                                                      str(characters.characters[character].attributes.stats[stat]))
+                        stats = characters.getStats(character)
+                        for key, value in stats.items():
+                            await client.send_message(message.channel, key + ": " + str(value))
 
                     if message.content.startswith("!set"):
                         #Allow the user to set whatever they want
@@ -136,6 +136,35 @@ async def on_message(message):
                 if characters.addCharacter(characterName, message.author):
                     print("Created", characterName)
                     await client.send_message(message.channel, characterName + " has risen.")
+                    await client.send_message(message.channel, "How would you like to build your character?")
+                    await client.send_message(message.channel, "Point Buy, Roll or Random?")
+
+                    def check(msg):
+                        return msg.content.replace(" ", "").lower().startswith('pointbuy') \
+                               or msg.content.replace(" ", "").lower().startswith('roll') \
+                               or msg.content.replace(" ", "").lower().startswith('random')
+
+                    message = await client.wait_for_message(author=message.author, check=check)
+                    buildWith = message.content.replace(" ", "").lower()
+                    if buildWith.startswith('pointbuy'):
+                        characters.characters[characterName].builtUsing = "pointbuy"
+                        await client.send_message(message.channel, "Ok, building your character with the point buy System")
+
+                    if buildWith.startswith('roll'):
+                        characters.characters[characterName].builtUsing = "roll"
+                        await client.send_message(message.channel, "Ok, building your character by rolling for values")
+
+                    if buildWith.startswith('random'):
+                        characters.characters[characterName].builtUsing = "random"
+                        await client.send_message(message.channel, "Ok, randomly setting values for your character")
+                        characters.setRandomStats(characterName)
+                        await client.send_message(message.channel, "Here are your character's Stats! Good luck!")
+                        stats = characters.getStats(characterName)
+                        for key, value in stats.items():
+                            await client.send_message(message.channel, key + ": " + str(value))
+
+
+
                 else:
                     await client.send_message(message.channel, characterName + " was already made.")
 
@@ -189,11 +218,11 @@ async def on_message(message):
         rolls = utility.roll(rollNumber, diceSize)
 
         if len(rolls) == 0:
-            print("Please roll a number of dice between 1 and 10000")
+            print("Please roll a number of dice between 1 and 100")
         else:
             for index, roll in enumerate(rolls):
-                print("Roll #", index, ":", roll)
-                await client.send_message(message.channel, "Roll #" + index + ": " + roll)
+                print("Roll #", index + 1, ":", roll)
+                await client.send_message(message.channel, "Roll #" + str(index + 1) + ": " + str(roll))
 
     if message.content.lower().startswith("!flip"):
         flip = utility.flip()

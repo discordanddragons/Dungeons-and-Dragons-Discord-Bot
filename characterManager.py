@@ -6,6 +6,7 @@ import re
 class characterManager:
     def __init__(self):
         self.characters = {}
+        self.utility = Utility()
 
     def characterExists(self, name):
         if name in self.characters:
@@ -45,12 +46,34 @@ class characterManager:
     def setLanguages(self, characterName, language):
         self.characters[characterName].languages.append(language)
 
+    # sets values work on this logic to update anything not just stats
+    def set(self, characterName, stat, value):
+        self.characters[characterName].attributes.stats[stat] = value
+        print("set", stat, "to", value)
+
+    def setRandomStats(self, characterName):
+        #sets the attributes to random values
+        # Roll method of generating dnd character
+        # Roll 4 6 sided dice and keep the top 3 then set the value to a stat
+        for stat in self.characters[characterName].attributes.stats:
+            # print(stat)
+            rolls = self.utility.roll(4, 6)
+            # print("These are the random roll numbers", rolls)
+            rolls.remove(min(rolls))
+            # print("These are the random roll numbers after removing the lowest one", rolls)
+            total = sum(rolls)
+            # print(total)
+            self.set(characterName, stat, total)
+
+    def getStats(self, characterName):
+        return self.characters[characterName].attributes.stats
 
 class Character:
     def __init__(self, name, owner, active):
         self.name = name
         self.owner = owner
         self.active = active
+        self.builtUsing = ""
         self.attributes = Attributes()
         self.maxHealth = 10
         self.currentHealth = 10
@@ -89,21 +112,10 @@ class Attributes:
             'charisma': 0
         }
         self.utility = Utility()
+        self.characterManager = characterManager()
 
-    def setRandomStats(self, characterName):
-        #sets the attributes to random values
-        # Roll method of generating dnd character
-        # Roll 4 6 sided dice and keep the top 3 then set the value to a stat
-        for stat in self.stats:
-            numbers = self.utility.roll(4, 6)
-            numbers = numbers.remove(min(numbers))
-            total = sum(numbers)
-            self.utility.set(characterName, stat, total)
 
-    def updateModifiers(self, stats):
-        # updates the modifiers based on the stats of the character and the
-
-class characterClass:
+class CharacterClass:
     def __init__(self):
         self.hitPoints = {
             'hitDice': '',
@@ -134,15 +146,14 @@ class characterClass:
 
 
 class Utility:
-
     def roll(self, numberOfRolls, sidesOfDice):
         rolls = []
         # Takes in a message in the form of: !roll 4d6
-        if numberOfRolls < 10000:
+        if numberOfRolls < 100:
             for n in range(numberOfRolls):
                 temp = randint(1, sidesOfDice)
                 rolls.append(temp)
-                print(temp)
+                # print(temp)
         return rolls
 
     def flip(self):
@@ -152,9 +163,7 @@ class Utility:
         else:
             return "Tails"
 
-    def set(self, characterName, stat, value):
-        self.characters[characterName].Stats.attribute[stat] = value
-        print("set", str(self.characters[characterName].Stats.stats[stat]), "to", value)
+
 
 
 
