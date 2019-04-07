@@ -104,8 +104,8 @@ async def on_message(message):
                         infoWars = "Character Name: " + characters.characters[character].name + "\n"
                         infoWars += "Class: " + characters.characters[character].characterClass + "\n"
                         infoWars += "Level: " + str(characters.characters[character].level) + "\n"
-                        infoWars +="Health: " + str(characters.characters[character].currentHealth) + \
-                                   "/" + str(characters.characters[character].maxHealth) + "\n"
+                        infoWars += "Health: " + str(characters.characters[character].currentHealth) + \
+                                    "/" + str(characters.characters[character].maxHealth) + "\n"
                         infoWars += "Race: " + characters.characters[character].race + "\n"
                         infoWars += "Gold: " + str(characters.characters[character].gold) + "\n"
                         stats = characters.getStats(character)
@@ -148,16 +148,16 @@ async def on_message(message):
                             characters.characters[character].builtUsing = "random"
                             await client.send_message(message.channel, "Ok, randomly setting values for your character")
                             characters.setRandomStats(character)
-                            await client.send_message(message.channel, "Here are your character's Stats! Good luck!")
+                            statMessage = "Here are your character's Stats! Good luck!\n"
                             stats = characters.getStats(character)
                             for key, value in stats.items():
-                                await client.send_message(message.channel, key + ": " + str(value))
-            # TODO Allow player to update character stats
+                                statMessage += key + ": " + str(value) + "\n"
+                            await client.send_message(message.channel, statMessage)
+
             if message.content.lower().startswith("!newcharacter ") or message.content.lower().startswith("!newchar "):
                 characterName = \
                     message.content.lower().replace("!newcharacter ", "").replace("!newchar ", "").capitalize()
                 if characters.addCharacter(characterName, message.author):
-                    print("Created", characterName)
                     await client.send_message(message.channel, characterName + " has risen.\n "
                                                                                "Set this character as your active "
                                                                                "by using !active characterName")
@@ -167,9 +167,6 @@ async def on_message(message):
             if message.content.lower().startswith("!active ") or message.content.lower().startswith("!set "):
                 characterName = message.content.lower().replace("!active ", "").replace("!set ", "").capitalize()
                 if characters.setActive(characterName, message.author):
-                    #TODO does not properly remove roles from user the first time, it works after switching back and
-                    # forth a couple times
-
                     # remove user from all language roles
                     for role in message.server.roles:
                         if str(role).startswith("language_"):
@@ -199,10 +196,10 @@ async def on_message(message):
                   "order to join this voice channel\n"
         helpDM += "!deleteLanguage language_name \n\t- Removes language channel and roles associated to that language\n"
         helpPlayer = "Player Commands\n"
-        helpPlayer += "If you do not have a character yet:"
+        helpPlayer += "If you do not have a character yet:\n"
         helpPlayer += "!newChar or !newCharacter character_name \n\t- Creates a new character with that name\n"
         helpPlayer += "!active character_name \n\t- Sets your active character to that character\n"
-        helpPlayer += "Once you set your active character:"
+        helpPlayer += "Once you set your active character:\n"
         helpPlayer += "!iknow language_name \n\t- Adds your player to the language role\n"
         helpPlayer += "!build \n\t- Builds your basic character\n"
         helpPlayer += "!set stat value \n\t- Sets a specific stat to a value\n"

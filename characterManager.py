@@ -18,6 +18,7 @@ class characterManager:
         if self.characterExists(name):
             return False
         self.characters[name] = Character(name, owner, False)
+        print("Created", name)
         return True
 
     def setActive(self, name, owner):
@@ -47,9 +48,16 @@ class characterManager:
         self.characters[characterName].languages.append(language)
 
     # sets values work on this logic to update anything not just stats
-    def set(self, characterName, stat, value):
-        self.characters[characterName].attributes.stats[stat] = value
-        print("set", stat, "to", value)
+    def set(self, characterName, thing, value):
+        statList = ["str", "strength", "dex", "dexterity", "int", "intelligence",
+                    "con", "constitution", "wis", "wisdom", "cha", "charisma"]
+        if thing in statList:
+            self.characters[characterName].attributes.stats[thing] = value
+            print("set", thing, "to", value)
+        # TODO add the ability to edit everything else
+        else:
+            self.characters[characterName].thing = value
+            print("set", thing, "to", value)
 
     def setRandomStats(self, characterName):
         #sets the attributes to random values
