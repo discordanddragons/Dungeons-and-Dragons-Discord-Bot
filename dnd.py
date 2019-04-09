@@ -120,7 +120,7 @@ async def on_message(message):
                         #Allow the user to set whatever they want
                         # !set strength 16
                         thing = message.content.lower().replace("!set", "").split()
-                        utility.set(character, thing[0], thing[1])
+                        characters.set(character, thing[0], thing[1])
 
                     if message.content.lower().startswith("!build"):
                         introMsg = "How would you like to build your character?\n"
