@@ -38,14 +38,20 @@ class characterManager:
                 ownersCharacters.append(character)
         return ownersCharacters
 
+    def addSkill(self, characterName, skill):
+        self.characters[characterName].skills.append(skill)
+
+    def addItem(self, characterName, item):
+        self.characters[characterName].items.append(item)
+
+    def setLanguages(self, characterName, language):
+        self.characters[characterName].languages.append(language)
+
     def getLanguages(self, characterName):
         knownLanguages = []
         for language in self.characters[characterName].languages:
             knownLanguages.append(language)
         return knownLanguages
-
-    def setLanguages(self, characterName, language):
-        self.characters[characterName].languages.append(language)
 
     # sets values work on this logic to update anything not just stats
     def set(self, characterName, thing, value):
@@ -53,10 +59,10 @@ class characterManager:
                     "con", "constitution", "wis", "wisdom", "cha", "charisma"]
         if thing in statList:
             self.characters[characterName].attributes.stats[thing] = value
-            print("set", thing, "to", value)
+            print("Setting stat:", thing, "to", value)
         # TODO add the ability to edit everything else
         else:
-            self.characters[characterName].thing = value
+            self.characters[characterName].gofuckyourself[thing] = value
             print("set", thing, "to", value)
 
     def setRandomStats(self, characterName):
@@ -76,29 +82,33 @@ class characterManager:
     def getStats(self, characterName):
         return self.characters[characterName].attributes.stats
 
+
 class Character:
     def __init__(self, name, owner, active):
         self.name = name
         self.owner = owner
         self.active = active
-        self.builtUsing = ""
         self.attributes = Attributes()
-        self.maxHealth = 10
-        self.currentHealth = 10
-        self.characterClass = "Not Set"
-        self.level = 1
-        self.race = "Not Set"
-        self.gold = 0
-        self.description = "Not Set"
-        self.alignment = "Not Set"
         self.languages = []
         self.items = []
         self.skills = []
+        self.builtUsing = ""
+        self.gofuckyourself = {
+            'maxHealth': 10,
+            'currentHealth': 10,
+            'characterClass': "Not Set",
+            'level': 1,
+            'race': "Not Set",
+            'gold': 0,
+            'description': "Not Set",
+            'alignment': "Not Set"
+        }
 
 
 class Attributes:
     def __init__(self, stre=10, dex=10, con=10, inte=10, wis=10, cha=10):
         # Stats contain the characters base stats
+        # modifier equation is round(stat - 10 / 2)
         self.stats = {
             'strength': stre,
             'dexterity': dex,
