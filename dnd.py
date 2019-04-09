@@ -154,6 +154,34 @@ async def on_message(message):
                                 statMessage += key + ": " + str(value) + "\n"
                             await client.send_message(message.channel, statMessage)
 
+                        await client.send_message(message.channel, "What race are you?")
+                        raceList = ["dwarf", "elf", "halfling", "human", "dragonborn",
+                                    "gnome", "half-elf", "half-orc", "tiefling"]
+
+                        def check(msg):
+                            return msg.content.replace(" ", "").lower().startswith(tuple(raceList))
+
+                        message = await client.wait_for_message(author=message.author, check=check)
+
+                        race = message.content.replace(" ", "")
+                        characters.characters[character].race = race
+                        await client.send_message(message.channel, "You are now a " + race)
+
+                        await client.send_message(message.channel, "What class are you?")
+                        characterClassList = ["barbarian", "bard", "cleric", "druid", "fighter",
+                                              "monk", "paladin", "ranger", "rogue", "sorcerer", "warlock", "wizard"]
+
+                        def check(msg):
+                            return msg.content.replace(" ", "").lower().startswith(tuple(characterClassList))
+
+                        message = await client.wait_for_message(author=message.author, check=check)
+
+                        characterClass = message.content.replace(" ", "")
+                        characters.characters[character].characterClass = characterClass
+                        await client.send_message(message.channel, "You are now a " + characterClass)
+
+                        characters.setActive(character, message.author)
+
             if message.content.lower().startswith("!newcharacter ") or message.content.lower().startswith("!newchar "):
                 characterName = \
                     message.content.lower().replace("!newcharacter ", "").replace("!newchar ", "").capitalize()
