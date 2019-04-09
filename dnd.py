@@ -253,9 +253,11 @@ async def on_message(message):
         if len(rolls) == 0:
             print("Please roll a number of dice between 1 and 100")
         else:
+            rollResult = ""
             for index, roll in enumerate(rolls):
-                print("Roll #", index + 1, ":", roll)
-                await client.send_message(message.channel, "Roll #" + str(index + 1) + ": " + str(roll))
+                # print("Roll #", index + 1, ":", roll)
+                rollResult += "Roll #" + str(index + 1) + ": " + str(roll) + "\n"
+            await client.send_message(message.channel, rollResult)
 
     if message.content.lower().startswith("!flip"):
         flip = utility.flip()
