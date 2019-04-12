@@ -2,6 +2,7 @@
 import discord
 from random import randint
 import re
+import json
 
 from characterManager import characterManager
 from characterManager import Utility
@@ -11,6 +12,17 @@ TOKEN = 'NTYzMDUxMTA2ODkzMDM3NTk4.XKTzBA.kCuGuv8Onok8NZZm1Q5TfPfrGAc'
 
 client = discord.Client()
 
+# This is a list of the skills for the rolls
+skillsDictRoll = {}
+with open('./json/mechanics.json', encoding="utf8") as file:
+    data = json.load(file)
+    for key in data["Using Ability Scores"]["Ability Checks"]["Skills"]:
+        if not key.startswith(tuple(["content", "Variant"])):
+            skillsDictRoll[key] = [key]
+            for skill in data["Using Ability Scores"]["Ability Checks"]["Skills"][key]:
+                skillsDictRoll[key].append(skill)
+
+    # print(skillsDictRoll)
 
 # Character creation stuff
 characters = characterManager()
@@ -165,7 +177,7 @@ async def on_message(message):
                                 message = await client.wait_for_message(author=message.author, check=check)
 
                                 race = message.content.replace(" ", "")
-                                characters.characters[character].race = race
+                                characters.characters[character].gofuckyourself["race"] = race
                                 await client.send_message(message.channel, "You are now a " + race)
 
                             if thing[0] == "class":
@@ -180,7 +192,7 @@ async def on_message(message):
                                 message = await client.wait_for_message(author=message.author, check=check)
 
                                 characterClass = message.content.replace(" ", "")
-                                characters.characters[character].characterClass = characterClass
+                                characters.characters[character].gofuckyourself["characterClass"] = characterClass
                                 await client.send_message(message.channel, "You are now a " + characterClass)
 
                                 characters.setActive(character, message.author)
@@ -231,33 +243,61 @@ async def on_message(message):
         helpDM += "!registerLanguage language_name \n\t- Adds a language channel, users must know this language in " \
                   "order to join this voice channel\n"
         helpDM += "!deleteLanguage language_name \n\t- Removes language channel and roles associated to that language\n"
-        helpPlayer = "Player Commands\n"
+        helpPlayer = "\nPlayer Commands\n"
         helpPlayer += "If you do not have a character yet:\n"
         helpPlayer += "!newChar or !newCharacter character_name \n\t- Creates a new character with that name\n"
         helpPlayer += "!active character_name \n\t- Sets your active character to that character\n"
-        helpPlayer += "Once you set your active character:\n"
+        helpPlayer += "\nOnce you set your active character:\n"
         helpPlayer += "!iknow language_name \n\t- Adds your player to the language role\n"
-        helpPlayer += "!build \n\t- Builds your basic character\n"
+        helpPlayer += "!set stats \n\t- Builds your basic character's stats\n"
+        helpPlayer += "!set class \n\t- Sets your characters stats\n"
+        helpPlayer += "!set race \n\t- Sets your characters race\n"
         helpPlayer += "!set stat value \n\t- Sets a specific stat to a value\n"
         output = helpDM + helpPlayer
         await client.send_message(message.channel, output)
 
     if message.content.lower().startswith("!roll") or message.content.lower().startswith("!r") \
             and "d" in message.content:
-        dice = message.content.lower().replace("!roll", "").replace(" ", "")
-        diceSplit = re.findall(r"(\d+)d(\d+)", dice)
-        rollNumber = int(diceSplit[0][0])
-        diceSize = int(diceSplit[0][1])
-        rolls = utility.roll(rollNumber, diceSize)
+        dice = message.content.lower().replace("!roll", "").replace(" ", "").capitalize()
+        # print("dice:", dice)
+        values = skillsDictRoll.values()
+        #print(skills)
 
-        if len(rolls) == 0:
-            print("Please roll a number of dice between 1 and 100")
+        temp = characters.getCharacters(message.author)
+        if dice in [x for v in values for x in v if type(v) == list]:
+            # print("Line 1")
+            for character in temp:
+                # print("line 2")
+                if message.author == characters.characters[character].owner \
+                        and characters.characters[character].active is True:
+                    # get a dictionary of all the rolls the dm can ask you to d
+                    # print("print line3")
+                    for key, value in skillsDictRoll.items():
+                        # print(key, value)
+                        if dice in value:
+                            print(key)
+                    # roll a d20 and add the appropriate modifier
+
+                    roll = utility.roll(1, 20)
+                    print(roll)
+                    #await client.send_message(message.channel, roll + "do a" + dice + "roll")
+
+                    # characters.characters[character].getModifier(stat)
+
         else:
-            rollResult = ""
-            for index, roll in enumerate(rolls):
-                # print("Roll #", index + 1, ":", roll)
-                rollResult += "Roll #" + str(index + 1) + ": " + str(roll) + "\n"
-            await client.send_message(message.channel, rollResult)
+            diceSplit = re.findall(r"(\d+)d(\d+)", dice)
+            rollNumber = int(diceSplit[0][0])
+            diceSize = int(diceSplit[0][1])
+            rolls = utility.roll(rollNumber, diceSize)
+
+            if len(rolls) == 0:
+                print("Please roll a number of dice between 1 and 100")
+            else:
+                rollResult = ""
+                for index, roll in enumerate(rolls):
+                    # print("Roll #", index + 1, ":", roll)
+                    rollResult += "Roll #" + str(index + 1) + ": " + str(roll) + "\n"
+                await client.send_message(message.channel, rollResult)
 
     if message.content.lower().startswith("!flip"):
         flip = utility.flip()
