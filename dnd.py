@@ -1,5 +1,5 @@
 # Work with Python 3.6
-import discord
+from discord.ext import commands
 from random import randint
 import re
 import json
@@ -10,7 +10,8 @@ TOKEN = 'NTYzMDUxMTA2ODkzMDM3NTk4.XKTzBA.kCuGuv8Onok8NZZm1Q5TfPfrGAc'
 
 # TODO Still need to do some role stuff to make sure people can't join things that they shouldn't be able to
 
-client = discord.Client()
+prefix = "!"
+client = commands.Bot(command_prefix=prefix, case_insensitive=True)
 
 # This is a list of the skills for the rolls
 skillsDictRoll = {}
@@ -37,7 +38,7 @@ async def on_voice_state_update(before, after):
             isDM = True
         elif role.name == "Player":
             isPlayer = True
-    if before.server_permissions.administrator or isDM:
+    if before.guild_permissions.administrator or isDM:
         destChannel = after.voice.voice_channel
         if destChannel == None:
             return
@@ -50,242 +51,158 @@ async def on_voice_state_update(before, after):
 
 @client.event
 async def on_message(message):
-    if message.author == client.user:
-        return
-    isDM = False
-    isPlayer = False
-    for role in message.author.roles:
-        if role.name == "DM":
-            isDM = True
-        if role.name == "Player":
-            isPlayer = True
-    # administrator/DM commands
     # TODO The DM is able to set the name of a game and players can join the game
     # TODO The DM is able to remove players from the game
     # TODO The DM is able to start the game
-    if message.author.server_permissions.administrator or isDM:
-        if message.content.startswith("!registerLanguage "):
-            channelname = "language_" + message.content.replace("!registerLanguage ", "").lower()
-            newChannel = await client.create_channel(message.server, channelname, type=discord.ChannelType.voice)
-            role = await client.create_role(message.server, name=channelname)
-            newRole = await client.add_roles(message.author, role)
-            roles = message.server.roles
-            newChannel.overwrites_for(newRole)
-            overwrite = discord.PermissionOverwrite()
-            overwrite.connect = False
-            # if there is a reason to make chats hidden until joined then uncomment this
-            # overwrite.read_messages = False
+    await client.process_commands(message)
 
-            for role in roles:
-                if role.is_everyone:
-                    await client.edit_channel_permissions(newChannel, role, overwrite)
-                    break
 
-        if message.content.startswith("!removeLanguage "):
-            language = "language_" + message.content.replace("!registerLanguage ", "").lower()
-            for server in client.servers:
-                client.delete_role(server, language)
-                client.delete_channel(language)
-            await client.send_message(message.channel, "Removed " + language)
+@client.event
+async def on_member_join(member):
+    for role in member.guild.roles:
+        if role.name == "Player":
+            await client.add_roles(member, role)
 
-    if isPlayer:
-        # player specific commands
-        if message.content.startswith("!"):
-            temp = characters.getCharacters(message.author)
-            for character in temp:
-                if message.author == characters.characters[character].owner \
-                        and characters.characters[character].active is True:
-                    if message.content.startswith("!iknow "):
-                        language = "language_" + message.content.replace("!iknow ", "").lower()
-                        roleSet = 0
-                        for role in message.server.roles:
-                            if language in role.name:
-                                characters.setLanguages(character, role)
-                                await client.send_message(message.channel, characters.characters[character].name +
-                                                          " now knows " + language[9:])
-                                print("Adding", message.author, "to", role)
-                                await client.add_roles(message.author, role)
-                                roleSet = 1
-                                break
-                        if roleSet == 0:
-                            await client.send_message(message.channel, "Do you speak english in what?")
 
-                    if message.content.startswith("!languages"):
-                        for language in characters.getLanguages(character):
-                            await client.send_message(message.channel, character + " knows " + str(language)[9:])
+@client.event
+async def on_ready():
+    print("Everything's all ready to go~")
+    for guild in client.guilds:
+        # first ensure that the roles exist for DM and players
+        hasDM = False
+        hasPlayer = False
+        roleDM = None
+        rolePlayer = None
+        for role in guild.roles:
+            if role.name == "DM":
+                roleDM = role
+                hasDM = True
+            elif role.name == "Player":
+                rolePlayer = role
+                hasPlayer = True
+        if hasDM == False:
+            roleDM = await guild.create_role(guild, name="DM")
+        if hasPlayer == False:
+            rolePlayer = await guild.create_role(guild, name="Player")
+        # now that the roles exist give the DM role to the creator of the sever, and player to all other members
+        for member in client.get_all_members():
+            if member.guild_permissions.administrator:
+                await member.add_roles(roleDM)
+            else:
+                await member.add_roles(rolePlayer)
 
-                    if message.content.startswith("!me"):
-                        #Gets users active character info
-                        infoWars = "Character Name: " + characters.characters[character].name + "\n"
-                        infoWars += "Class: " + characters.characters[character].gofuckyourself["characterClass"] + "\n"
-                        infoWars += "Level: " + str(characters.characters[character].gofuckyourself["level"]) + "\n"
-                        infoWars += "Health: " + str(characters.characters[character].gofuckyourself["currentHealth"]) + \
-                                    "/" + str(characters.characters[character].gofuckyourself["maxHealth"]) + "\n"
-                        infoWars += "Race: " + characters.characters[character].gofuckyourself["race"] + "\n"
-                        infoWars += "Gold: " + str(characters.characters[character].gofuckyourself["gold"]) + "\n"
-                        stats = characters.getStats(character)
-                        for key, value in stats.items():
-                            infoWars += key + ": " + str(value) + "\n"
-                        for language in characters.getLanguages(character):
-                            infoWars += character + " knows " + str(language)[9:] + "\n"
 
-                        await client.send_message(message.author, infoWars)
+@client.command()
+@commands.has_role('Player')
+async def test(ctx, className):
+    """Hey, go fuck yourself."""
+    await ctx.send(className)
 
-                    if message.content.startswith("!set"):
-                        # Allow the user to set whatever they want
-                        thing = message.content.lower().replace("!set", "").split()
-                        if len(thing) == 1:
-                            # The user is trying to use one of the prebuilt sets
-                            if thing[0] == "stats":
-                                introMsg = "How would you like to build your character?\n"
-                                introMsg += "Point Buy, Roll or Random?"
-                                await client.send_message(message.channel, introMsg)
 
-                                def check(msg):
-                                    return msg.content.replace(" ", "").lower().startswith('pointbuy') \
-                                           or msg.content.replace(" ", "").lower().startswith('roll') \
-                                           or msg.content.replace(" ", "").lower().startswith('random')
+@test.error
+async def test_error(ctx, error):
+    await ctx.send('Youre not a fuckin player')
 
-                                message = await client.wait_for_message(author=message.author, check=check)
-                                buildWith = message.content.replace(" ", "").lower()
-                                if buildWith.startswith('pointbuy'):
-                                    characters.characters[character].builtUsing = "pointbuy"
-                                    await client.send_message(message.channel,
-                                                              "Ok, building your character with the point buy System")
 
-                                if buildWith.startswith('roll'):
-                                    characters.characters[character].builtUsing = "roll"
-                                    await client.send_message(message.channel,
-                                                              "Ok, building your character by rolling for values")
+@client.command(aliases=['newchar'])
+async def newcharacter(ctx, characterName):
+    """Creates a new character with the character name."""
+    characterName = characterName.lower().capitalize()
+    if characters.addCharacter(characterName, ctx.author):
+        await ctx.send(characterName + " has risen.\n Set this character as your active by using !active characterName")
+    else:
+        await ctx.send(characterName + " was already made.")
 
-                                if buildWith.startswith('random'):
-                                    characters.characters[character].builtUsing = "random"
-                                    await client.send_message(message.channel,
-                                                              "Ok, randomly setting values for your character")
-                                    characters.setRandomStats(character)
-                                    statMessage = "Here are your character's Stats! Good luck!\n"
-                                    stats = characters.getStats(character)
-                                    for key, value in stats.items():
-                                        statMessage += key + ": " + str(value) + "\n"
-                                    await client.send_message(message.channel, statMessage)
 
-                            if thing[0] == "race":
-                                await client.send_message(message.channel, "What race are you?")
-                                raceList = ["dwarf", "elf", "halfling", "human", "dragonborn",
-                                            "gnome", "half-elf", "half-orc", "tiefling"]
+@client.command()
+async def active(ctx, characterName):
+        characterName = characterName.lower().lstrip().capitalize()
+        if characters.setActive(characterName, ctx.author):
+            # remove user from all language roles
+            for role in ctx.author.roles:
+                if str(role).startswith("language_"):
+                    print("removing", ctx.author, "from", role)
+                    await client.remove_roles(ctx.author, role)
 
-                                def check(msg):
-                                    return msg.content.replace(" ", "").lower().startswith(tuple(raceList))
+            await ctx.send(characterName + " is now active.")
 
-                                message = await client.wait_for_message(author=message.author, check=check)
+            # Add user to the languages for that active character
+            for language in characters.getLanguages(characterName):
+                print("Adding", ctx.author, "to", role)
+                await client.add_roles(ctx.author, language)
+        else:
+            await ctx.send(characterName + " could not be set as active")
 
-                                race = message.content.replace(" ", "")
-                                characters.characters[character].gofuckyourself["race"] = race
-                                await client.send_message(message.channel, "You are now a " + race)
 
-                            if thing[0] == "class":
-                                await client.send_message(message.channel, "What class are you?")
-                                characterClassList = ["barbarian", "bard", "cleric", "druid", "fighter",
-                                                      "monk", "paladin", "ranger", "rogue", "sorcerer", "warlock",
-                                                      "wizard"]
+@client.command()
+async def iknow(ctx, language):
+    language = "language_" + language.lower()
+    roleSet = 0
+    for role in ctx.guild.roles:
+        if language in role.name:
+            character = characters.getActive(ctx.author)
+            characters.setLanguages(character, role)
+            message = "```" + character + " now knows " + language[9:] + "```"
+            await ctx.send(message)
+            print("Adding", ctx.author, "to", role)
+            await client.add_roles(ctx.author, role)
+            roleSet = 1
+            break
+    if roleSet == 0:
+        await ctx.send(ctx.channel, "```Langauge does not exist```")
 
-                                def check(msg):
-                                    return msg.content.replace(" ", "").lower().startswith(tuple(characterClassList))
 
-                                message = await client.wait_for_message(author=message.author, check=check)
+@client.command()
+async def me(ctx):
+    temp = characters.getCharacters(ctx.author)
+    infoWars = "------------"
+    for character in temp:
+        infoWars += character
+    print(infoWars)
+    await client.send_message(ctx.author, infoWars)
+    return
 
-                                characterClass = message.content.replace(" ", "")
-                                characters.characters[character].gofuckyourself["characterClass"] = characterClass
-                                await client.send_message(message.channel, "You are now a " + characterClass)
 
-                                characters.setActive(character, message.author)
 
-                        if len(thing) == 2:
-                            # the user is trying to set a specific thing
-                            # !set strength 16
-                            characters.set(character, thing[0], thing[1])
+    user = ctx.author
+    # shows all the characters that are owned by a user
+    name = str(user)
+    for character in characters.getCharacters(user):
+        await ctx.send(name + " owns " + character)
 
-            if message.content.lower().startswith("!newcharacter ") or message.content.lower().startswith("!newchar "):
-                characterName = \
-                    message.content.lower().replace("!newcharacter ", "").replace("!newchar ", "").capitalize()
-                if characters.addCharacter(characterName, message.author):
-                    await client.send_message(message.channel, characterName + " has risen.\n "
-                                                                               "Set this character as your active "
-                                                                               "by using !active characterName")
-                else:
-                    await client.send_message(message.channel, characterName + " was already made.")
 
-            if message.content.lower().startswith("!active "):
-                characterName = message.content.lower().replace("!active ", "").lstrip().capitalize()
-                if characters.setActive(characterName, message.author):
-                    # remove user from all language roles
-                    for role in message.author.roles:
-                        if str(role).startswith("language_"):
-                            print("removing", message.author, "from", role)
-                            await client.remove_roles(message.author, role)
+@client.command()
+async def flip(ctx):
+    flip = utility.flip()
+    print(flip)
+    await ctx.send(flip)
 
-                    await client.send_message(message.channel, characterName + " is now active.")
 
-                    # Add user to the languages for that active character
-                    for language in characters.getLanguages(characterName):
-                        print("Adding", message.author, "to", role)
-                        await client.add_roles(message.author, language)
-                else:
-                    await client.send_message(message.channel, characterName + " could not be set as active")
-
-            if message.content.startswith("!characters"):
-                user = message.author
-                # shows all the characters that are owned by a user
-                name = str(user)
-                for character in characters.getCharacters(user):
-                    await client.send_message(message.channel, name + " owns " + character)
-
-    # everyone commands
-    if message.content.lower().startswith("!help") or message.content.lower().startswith("!h"):
-        helpDM = "DM Commands\n"
-        helpDM += "!registerLanguage language_name \n\t- Adds a language channel, users must know this language in " \
-                  "order to join this voice channel\n"
-        helpDM += "!deleteLanguage language_name \n\t- Removes language channel and roles associated to that language\n"
-        helpPlayer = "\nPlayer Commands\n"
-        helpPlayer += "If you do not have a character yet:\n"
-        helpPlayer += "!newChar or !newCharacter character_name \n\t- Creates a new character with that name\n"
-        helpPlayer += "!active character_name \n\t- Sets your active character to that character\n"
-        helpPlayer += "\nOnce you set your active character:\n"
-        helpPlayer += "!iknow language_name \n\t- Adds your player to the language role\n"
-        helpPlayer += "!set stats \n\t- Builds your basic character's stats\n"
-        helpPlayer += "!set class \n\t- Sets your characters stats\n"
-        helpPlayer += "!set race \n\t- Sets your characters race\n"
-        helpPlayer += "!set stat value \n\t- Sets a specific stat to a value\n"
-        output = helpDM + helpPlayer
-        await client.send_message(message.channel, output)
-
-    if message.content.lower().startswith("!roll") or message.content.lower().startswith("!r") \
-            and "d" in message.content:
-        dice = message.content.lower().replace("!roll", "").replace(" ", "").capitalize()
+@client.command(aliases=['r'])
+async def roll(ctx):
+    if "d" in ctx.content:
+        dice = ctx.content.lower()
         # print("dice:", dice)
         values = skillsDictRoll.values()
         # print(skills)
 
         if dice in [x for v in values for x in v if type(v) == list]:
             # print("Line 1")
-            for character in characters.getCharacters(message.author):
-                # print("line 2")
-                if message.author == characters.characters[character].owner \
-                        and characters.characters[character].active is True:
-                    # get a dictionary of all the rolls the dm can ask you to d
-                    # print("print line3")
+            if characters.getActive(ctx.author):
+                # get a dictionary of all the rolls the dm can ask you to d
+                # print("print line3")
 
-                    for key, value in skillsDictRoll.items():
-                        # print(key, value)
-                        if dice in value:
-                            stat = key
-                    print(stat)
-                    print(characters.roll(message.author, stat))
-                    # roll a d20 and add the appropriate modifier
-                    roll = utility.roll(1, 20)
-                    await client.send_message(message.channel, str(roll[0]) + " add th e" + stat + " modifier pls =)")
+                for key, value in skillsDictRoll.items():
+                    # print(key, value)
+                    if dice in value:
+                        stat = key
+                print(stat)
+                print(characters.roll(ctx.author, stat))
+                # roll a d20 and add the appropriate modifier
+                roll = utility.roll(1, 20)
+                await ctx.send(str(roll[0]) + " add th e" + stat + " modifier pls =)")
 
-                    # characters.characters[character].getModifier(stat)
+                # characters.characters[character].getModifier(stat)
 
         else:
             diceSplit = re.findall(r"(\d+)d(\d+)", dice)
@@ -300,43 +217,120 @@ async def on_message(message):
                 for index, roll in enumerate(rolls):
                     # print("Roll #", index + 1, ":", roll)
                     rollResult += "Roll #" + str(index + 1) + ": " + str(roll) + "\n"
-                await client.send_message(message.channel, rollResult)
-
-    if message.content.lower().startswith("!flip"):
-        flip = utility.flip()
-        print(flip)
-        await client.send_message(message.channel, flip)
+                await ctx.send(rollResult)
 
 
-@client.event
-async def on_member_join(member):
-    for role in member.server.roles:
-        if role.name == "Player":
-            await client.add_roles(member, role)
+@client.command()
+@commands.has_role(['Player', 'DM'])
+async def set(ctx, *, thing):
+    # Allow the user to set whatever they want
+    thing = thing.lower().split()
+    if characters.getActive(ctx.author):
+        character = characters.getActive(ctx.author)
+        if len(thing) == 1:
 
-@client.event
-async def on_ready():
-    for server in client.servers:
-        # first ensure that the roles exist for DM and players
-        hasDM = False
-        hasPlayer = False
-        roleDM = None
-        rolePlayer = None
-        for role in server.roles:
-            if role.name == "DM":
-                roleDM = role
-                hasDM = True
-            elif role.name == "Player":
-                rolePlayer = role
-                hasPlayer = True
-        if hasDM == False:
-            roleDM = await client.create_role(server, name="DM")
-        if hasPlayer == False:
-            rolePlayer = await client.create_role(server, name="Player")
-        # now that the roles exist give the DM role to the creator of the sever, and player to all other members
-        for member in client.get_all_members():
-            if member.server_permissions.administrator:
-                await client.add_roles(member, roleDM)
-            else:
-                await client.add_roles(member, rolePlayer)
+            # The user is trying to use one of the prebuilt sets
+            if thing[0] == "stats":
+                introMsg = "How would you like to build your character?\n"
+                introMsg += "Point Buy, Roll or Random?"
+                await ctx.send(introMsg)
+
+                def check(msg):
+                    return msg.content.replace(" ", "").lower().startswith('pointbuy') \
+                           or msg.content.replace(" ", "").lower().startswith('roll') \
+                           or msg.content.replace(" ", "").lower().startswith('random')
+
+                message = await client.wait_for_message(author=ctx.author, check=check)
+                buildWith = message.content.replace(" ", "").lower()
+                if buildWith.startswith('pointbuy'):
+                    characters.characters[character].builtUsing = "pointbuy"
+                    await ctx.send(message.channel,
+                                              "Ok, building your character with the point buy System")
+
+                if buildWith.startswith('roll'):
+                    characters.characters[character].builtUsing = "roll"
+                    await ctx.send(message.channel,
+                                              "Ok, building your character by rolling for values")
+
+                if buildWith.startswith('random'):
+                    characters.characters[character].builtUsing = "random"
+                    await ctx.send(message.channel,
+                                              "Ok, randomly setting values for your character")
+                    characters.setRandomStats(character)
+                    statMessage = "Here are your character's Stats! Good luck!\n"
+                    stats = characters.getStats(character)
+                    for key, value in stats.items():
+                        statMessage += key + ": " + str(value) + "\n"
+                    await ctx.send(statMessage)
+
+            if thing[0] == "race":
+                await ctx.send("What race are you?")
+                raceList = ["dwarf", "elf", "halfling", "human", "dragonborn",
+                            "gnome", "half-elf", "half-orc", "tiefling"]
+
+                def check(msg):
+                    return msg.content.replace(" ", "").lower().startswith(tuple(raceList))
+
+                message = await client.wait_for_message(author=message.author, check=check)
+
+                race = message.content.replace(" ", "")
+                characters.characters[character].gofuckyourself["race"] = race
+                await ctx.send("You are now a " + race)
+
+            if thing[0] == "class":
+                await ctx.send("What class are you?")
+                characterClassList = ["barbarian", "bard", "cleric", "druid", "fighter",
+                                      "monk", "paladin", "ranger", "rogue", "sorcerer", "warlock",
+                                      "wizard"]
+
+                def check(msg):
+                    return msg.content.replace(" ", "").lower().startswith(tuple(characterClassList))
+
+                message = await client.wait_for_message(author=message.author, check=check)
+
+                characterClass = message.content.replace(" ", "")
+                characters.characters[character].gofuckyourself["characterClass"] = characterClass
+                await ctx.send("You are now a " + characterClass)
+
+                characters.setActive(character, message.author)
+
+        if len(thing) == 2:
+            # the user is trying to set a specific thing
+            # !set strength 16
+            characters.set(character, thing[0], thing[1])
+
+
+@client.command()
+@commands.has_role(['DM'])
+async def registerLanguage(ctx, language):
+    for guild in client.guilds:
+        print(guild)
+        channelname = "language_" + language.replace("!registerLanguage ", "").lower()
+        print(channelname)
+        newChannel = await guild.create_voice_channel(channelname)
+        role = await guild.create_role(channelname)
+        newRole = await guild.add_roles(ctx.author, role)
+        roles = ctx.guild.roles
+        newChannel.overwrites_for(newRole)
+        overwrite = guild.PermissionOverwrite()
+        overwrite.connect = False
+        # if there is a reason to make chats hidden until joined then uncomment this
+        # overwrite.read_messages = False
+
+        for role in roles:
+            if role.is_everyone:
+                await guild.edit_channel_permissions(newChannel, role, overwrite)
+                break
+
+
+@client.command()
+@commands.has_role(['DM'])
+async def removeLanguage(ctx, language):
+    language = "language_" + language.replace("!registerLanguage ", "").lower()
+    for guild in client.guilds:
+        guild.delete_role(guild, language)
+        guild.delete_channel(language)
+    await ctx.send("Removed " + language)
+
+
 client.run(TOKEN)
