@@ -1,12 +1,16 @@
 # Character creation stuff
 from random import randint
+from pprint import pprint
 import re
+import json
 
 
 class characterManager:
+    
     def __init__(self):
         self.characters = {}
         self.utility = Utility()
+        self.raceMgr = racemanager()
 
     def characterExists(self, name):
         if name in self.characters:
@@ -31,6 +35,29 @@ class characterManager:
         else:
             return False
 
+    def getActive(self,owner):
+        for character in self.characters:
+            if self.characters[character].owner == owner:
+                if self.characters[character].active == True:
+                    return character
+        return False
+    
+    def roll(self,owner,statType):
+        character = self.getActive(owner)
+        if character == False:
+            return False
+        else:
+            diceType = 20
+            output = character + " is rolling for "+statType + "\n"
+            output += "Using a d"+str(20)+" "+character+" rolled a "+str(self.utility.roll(1,20))
+            raceAbilities = self.raceMgr.races[self.getClass(owner)].abilities
+            if statType in raceAbilities:
+                if raceAbilities[statType] > 0:
+                    output += "+"+str(raceAbilities[statType])+"(race)"
+                else:
+                    output += str(raceAbilities[statType])+"(race)"
+            print(output)
+
     def getCharacters(self, owner):
         ownersCharacters = []
         for character in self.characters:
@@ -53,6 +80,24 @@ class characterManager:
             knownLanguages.append(language)
         return knownLanguages
 
+    def getClass(self,owner):
+        character = self.getActive(owner)
+        if character == False:
+            return False
+        else:
+            return self.characters[character].gofuckyourself["race"]
+
+    def setRace(self,owner,raceName):
+        character = self.getActive(owner)
+        if character == False:
+            return False
+        else:
+            if raceName in self.raceMgr.races:
+                self.characters[character].gofuckyourself["race"] = raceName
+                print("Your race is now: "+ raceName)
+            else:
+                print("pick a real race you dunce\n")
+                print(", ".join(self.raceMgr.races))
     # sets values work on this logic to update anything not just stats
     def set(self, characterName, thing, value):
         statList = ["str", "strength", "dex", "dexterity", "int", "intelligence",
@@ -156,8 +201,34 @@ class CharacterClass:
         #classes all have starting equipment
         self.equipment = []
 
+class racemanager:
+    def __init__(self):
+        #load json and add a class for each class
+        self.races = {}
+        with open('checkthisout.json') as f:
+            data = json.load(f)
+        for elem in data["race"]:
+            abilities = {}
+            languages = {}
+            if "ability" in elem:
+                abilities = elem["ability"]
+            if "languageTags" in elem:
+                languages = elem["languageTags"]
+            self.races[elem["name"]] = raceStats(abilities,languages)
+        #for key, value in self.classes.items():
+        #    print(key,'\n')
+        #    print(value)
 
-
+class raceStats:
+    def __init__(self,abilities,languages):
+        self.abilities = abilities
+        self.languages = languages
+    def __str__(self):
+        output = "abilities: "
+        for key, value in self.abilities.items():
+            output += key+":"+str(value)+", "
+        output += "\nlanguages: " + ', '.join(self.languages) + "\n"
+        return output
 #class Skills:
 
 #class Items:
