@@ -71,19 +71,29 @@ async def on_ready():
         # first ensure that the roles exist for DM and players
         hasDM = False
         hasPlayer = False
+        hasActive = False
+
         roleDM = None
         rolePlayer = None
         for role in guild.roles:
             if role.name == "DM":
                 roleDM = role
                 hasDM = True
-            elif role.name == "Player":
+            if role.name == "Player":
                 rolePlayer = role
                 hasPlayer = True
-        if hasDM == False:
-            roleDM = await guild.create_role(guild, name="DM")
-        if hasPlayer == False:
-            rolePlayer = await guild.create_role(guild, name="Player")
+            if role.name == "Active":
+                hasActive = True
+
+        if hasDM is False:
+            roleDM = await guild.create_role(name="DM")
+
+        if hasPlayer is False:
+            rolePlayer = await guild.create_role(name="Player")
+
+        if hasActive is False:
+            await guild.create_role(name="Active")
+
         # now that the roles exist give the DM role to the creator of the sever, and player to all other members
         for member in client.get_all_members():
             if member.guild_permissions.administrator:
@@ -104,44 +114,49 @@ async def test_error(ctx, error):
     await ctx.send('Youre not a fuckin player')
 
 
-@client.command(aliases=['newchar'])
-async def newcharacter(ctx, characterName):
+@client.command(pass_context=True, aliases=['newcharacter'])
+async def newchar(ctx, characterName):
     """Creates a new character with the character name."""
     characterName = characterName.lower().capitalize()
     if characters.addCharacter(characterName, ctx.author):
-        await ctx.send(characterName + " has risen.\n Set this character as your active by using !active characterName")
+        characters.setActive(characterName, ctx.author)
+
+        await ctx.author.add_roles(ctx.author, "Active")
+        await ctx.send(characterName + " has risen and is active.")
     else:
         await ctx.send(characterName + " was already made.")
 
 
 @client.command()
 async def active(ctx, characterName):
-        characterName = characterName.lower().lstrip().capitalize()
-        if characters.setActive(characterName, ctx.author):
-            # remove user from all language roles
-            for role in ctx.author.roles:
-                if str(role).startswith("language_"):
-                    print("removing", ctx.author, "from", role)
-                    await client.remove_roles(ctx.author, role)
+    """Sets your character as the active one."""
+    characterName = characterName.lower().lstrip().capitalize()
+    if characters.setActive(characterName, ctx.author):
+        # remove user from all language roles
+        for role in ctx.author.roles:
+            if str(role).startswith("language_"):
+                print("removing", ctx.author, "from", role)
+                await client.remove_roles(ctx.author, role)
 
-            await ctx.send(characterName + " is now active.")
+        await ctx.send(characterName + " is now active.")
 
-            # Add user to the languages for that active character
-            for language in characters.getLanguages(characterName):
-                print("Adding", ctx.author, "to", role)
-                await client.add_roles(ctx.author, language)
-        else:
-            await ctx.send(characterName + " could not be set as active")
+        # Add user to the languages for that active character
+        for language in characters.getLanguages(characterName):
+            print("Adding", ctx.author, "to", role)
+            await client.add_roles(ctx.author, language)
+    else:
+        await ctx.send(characterName + " could not be set as active")
 
 
 @client.command()
 async def iknow(ctx, language):
+    """Adds a language to your character."""
     language = "language_" + language.lower()
     roleSet = 0
     for role in ctx.guild.roles:
         if language in role.name:
             character = characters.getActive(ctx.author)
-            characters.setLanguages(character, role)
+            characters.setLanguages(ctx.author, role)
             message = "```" + character + " now knows " + language[9:] + "```"
             await ctx.send(message)
             print("Adding", ctx.author, "to", role)
@@ -154,12 +169,13 @@ async def iknow(ctx, language):
 
 @client.command()
 async def me(ctx):
+    """Gets info about your character."""
     temp = characters.getCharacters(ctx.author)
     infoWars = "------------"
     for character in temp:
         infoWars += character
     print(infoWars)
-    await client.send_message(ctx.author, infoWars)
+    await client.send(ctx.author, infoWars)
     return
 
 
@@ -179,9 +195,9 @@ async def flip(ctx):
 
 
 @client.command(aliases=['r'])
-async def roll(ctx):
-    if "d" in ctx.content:
-        dice = ctx.content.lower()
+async def roll(ctx, roll):
+    if "d" in roll:
+        dice = roll.lower()
         # print("dice:", dice)
         values = skillsDictRoll.values()
         # print(skills)
@@ -213,10 +229,11 @@ async def roll(ctx):
             if len(rolls) == 0:
                 print("Please roll a number of dice between 1 and 100")
             else:
-                rollResult = ""
+                rollResult = "```%s rolled:\n" % ctx.author
                 for index, roll in enumerate(rolls):
                     # print("Roll #", index + 1, ":", roll)
                     rollResult += "Roll #" + str(index + 1) + ": " + str(roll) + "\n"
+                rollResult += "```"
                 await ctx.send(rollResult)
 
 
