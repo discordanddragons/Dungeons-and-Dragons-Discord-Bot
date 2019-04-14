@@ -39,7 +39,7 @@ class characterManager:
         except:
             return False
 
-    def getActive(self, owner):
+    def getActive(self,owner):
         try:
             for character in self.characters[owner]:
                 if self.characters[owner][character].active == True:
@@ -48,14 +48,15 @@ class characterManager:
         except:
             return False
 
-    def roll(self, owner, statType):
+    def roll(self,owner,statType):
         character = self.getActive(owner)
         if character == False:
             return False
         else:
             diceType = 20
-            output = character + " is rolling for " + statType + "\n"
-            output += "Using a d" + str(20) + " " + character + " rolled a " + str(self.utility.roll(1, 20))
+
+            output = character + " is rolling for "+statType + "\n"
+            output += "Using a d"+str(20)+" "+character+" rolled a "+str(self.utility.roll(1,20))
             raceAbilities = self.raceMgr.races[self.getRace(owner)].abilities
             if statType in raceAbilities:
                 if raceAbilities[statType] > 0:
@@ -69,7 +70,8 @@ class characterManager:
             print("getting the character")
             print(self.characters[owner])
             characters = []
-            for key, value in self.characters[owner].items():
+
+            for key,value in self.characters[owner].items():
                 print(value)
                 characters.append(str(value))
             return characters
@@ -95,7 +97,7 @@ class characterManager:
             knownLanguages.append(language)
         return knownLanguages
 
-    def getRace(self, owner):
+    def getRace(self,owner):
         character = self.getActive(owner)
         if character == False:
             return False
@@ -109,7 +111,8 @@ class characterManager:
         else:
             if raceName in self.raceMgr.races:
                 self.characters[owner][character].gofuckyourself["race"] = raceName
-                print("Your race is now: " + raceName)
+
+                print("Your race is now: "+ raceName)
             else:
                 print("pick a real race you dunce\n")
                 print(", ".join(self.raceMgr.races))
@@ -129,7 +132,7 @@ class characterManager:
 
     def setRandomStats(self, owner):
         character = self.getActive(owner)
-        # sets the attributes to random values
+        #sets the attributes to random values
         # Roll method of generating dnd character
         # Roll 4 6 sided dice and keep the top 3 then set the value to a stat
         for stat in self.characters[owner][character].attributes.stats:
@@ -173,10 +176,10 @@ class Character:
         output += "Class: " + self.gofuckyourself["characterClass"] + "\n"
         output += "Level: " + str(self.gofuckyourself["level"]) + "\n"
         output += "Health: " + str(self.gofuckyourself["currentHealth"]) + \
-                  "/" + str(self.gofuckyourself["maxHealth"]) + "\n"
+                    "/" + str(self.gofuckyourself["maxHealth"]) + "\n"
         output += "Race: " + self.gofuckyourself["race"] + "\n"
         output += "Gold: " + str(self.gofuckyourself["gold"]) + "\n"
-        output += "Attributes: \n" + str(self.attributes)
+        output += "Attributes: \n"+ str(self.attributes)
         return output
 
 
@@ -208,7 +211,7 @@ class Attributes:
     def __str__(self):
         output = ""
         for elem in self.stats:
-            output += elem + ": " + str(self.stats[elem]) + "\n"
+            output += elem+": "+str(self.stats[elem])+"\n"
         return output
 
 
