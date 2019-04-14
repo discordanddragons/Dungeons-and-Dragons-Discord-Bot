@@ -1,16 +1,18 @@
 from characterManager import characterManager
 
 from characterManager import racemanager
+characterName = "Gimli"
+authorName = "Esteban"
 
 def estebanTests():
     manager = characterManager()
     #Test Character Adding
-    if manager.addCharacter("playerName","discordName"):
+    if manager.addCharacter(characterName,authorName):
         print("addCharacter: PASS")
     else:
         print("addCharacter: FAIL")
 
-    if not manager.addCharacter("playerName","discordName"):
+    if not manager.addCharacter(characterName,authorName):
         print("duplicate addCharacter: PASS")
     else:
         print("duplicate addCharacter: FAIL")
@@ -21,22 +23,35 @@ def estebanTests():
     else:
         print("setActive: FAIL")
 
-    if manager.getActive("discordName") == False:
+    if manager.getActive(authorName) == False:
         print("getActive: Pass")
     else:
         print("getActive: FAIL")
 
-    if manager.setActive("playerName","discordName"):
+    if manager.setActive(characterName,authorName):
         print("setActive: PASS")
     else:
         print("setActive: FAIL")
 
-    if manager.getActive("discordName") == "playerName":
+    if manager.getActive(authorName) == characterName:
         print("getActive: Pass")
     else:
         print("getActive: FAIL")
-     #Test setClass
-    manager.setRace("discordName","Minotaur")
-    manager.roll("discordName","str")
-    
+
+    #Utility Tests
+    if manager.utility.roll(1, 20) is None:
+        print("Roll: FAIL")
+    else:
+        print("Roll: Pass")
+
+    if manager.utility.flip() is None:
+        print("flip: FAIL")
+    else:
+        print("flip: Pass")
+
+     #Test setRace
+    # manager.setRace(authorName,"Minotaur")
+    # manager.roll(authorName,"str")
+
+
 estebanTests()

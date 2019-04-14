@@ -98,6 +98,7 @@ class characterManager:
             else:
                 print("pick a real race you dunce\n")
                 print(", ".join(self.raceMgr.races))
+
     # sets values work on this logic to update anything not just stats
     def set(self, characterName, thing, value):
         statList = ["str", "strength", "dex", "dexterity", "int", "intelligence",

@@ -60,6 +60,9 @@ async def on_message(message):
         if role.name == "Player":
             isPlayer = True
     # administrator/DM commands
+    # TODO The DM is able to set the name of a game and players can join the game
+    # TODO The DM is able to remove players from the game
+    # TODO The DM is able to start the game
     if message.author.server_permissions.administrator or isDM:
         if message.content.startswith("!registerLanguage "):
             channelname = "language_" + message.content.replace("!registerLanguage ", "").lower()
@@ -213,7 +216,7 @@ async def on_message(message):
                     await client.send_message(message.channel, characterName + " was already made.")
 
             if message.content.lower().startswith("!active "):
-                characterName = message.content.lower().replace("!active ", "").capitalize()
+                characterName = message.content.lower().replace("!active ", "").lstrip().capitalize()
                 if characters.setActive(characterName, message.author):
                     # remove user from all language roles
                     for role in message.author.roles:
@@ -277,6 +280,7 @@ async def on_message(message):
                         if dice in value:
                             stat = key
                     print(stat)
+                    print(characters.roll(message.author, stat))
                     # roll a d20 and add the appropriate modifier
                     roll = utility.roll(1, 20)
                     await client.send_message(message.channel, str(roll[0]) + " add th e" + stat + " modifier pls =)")
