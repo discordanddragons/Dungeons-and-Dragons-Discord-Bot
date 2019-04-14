@@ -216,7 +216,7 @@ async def on_message(message):
                 characterName = message.content.lower().replace("!active ", "").capitalize()
                 if characters.setActive(characterName, message.author):
                     # remove user from all language roles
-                    for role in message.server.roles:
+                    for role in message.author.roles:
                         if str(role).startswith("language_"):
                             print("removing", message.author, "from", role)
                             await client.remove_roles(message.author, role)
@@ -261,26 +261,25 @@ async def on_message(message):
         dice = message.content.lower().replace("!roll", "").replace(" ", "").capitalize()
         # print("dice:", dice)
         values = skillsDictRoll.values()
-        #print(skills)
+        # print(skills)
 
-        temp = characters.getCharacters(message.author)
         if dice in [x for v in values for x in v if type(v) == list]:
             # print("Line 1")
-            for character in temp:
+            for character in characters.getCharacters(message.author):
                 # print("line 2")
                 if message.author == characters.characters[character].owner \
                         and characters.characters[character].active is True:
                     # get a dictionary of all the rolls the dm can ask you to d
                     # print("print line3")
+
                     for key, value in skillsDictRoll.items():
                         # print(key, value)
                         if dice in value:
-                            print(key)
+                            stat = key
+                    print(stat)
                     # roll a d20 and add the appropriate modifier
-
                     roll = utility.roll(1, 20)
-                    print(roll)
-                    #await client.send_message(message.channel, roll + "do a" + dice + "roll")
+                    await client.send_message(message.channel, str(roll[0]) + " add th e" + stat + " modifier pls =)")
 
                     # characters.characters[character].getModifier(stat)
 
