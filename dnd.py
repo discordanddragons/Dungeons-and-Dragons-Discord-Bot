@@ -91,119 +91,111 @@ async def on_message(message):
     if isPlayer:
         # player specific commands
         if message.content.startswith("!"):
-            temp = characters.getCharacters(message.author)
-            for character in temp:
-                if message.author == characters.characters[character].owner \
-                        and characters.characters[character].active is True:
-                    if message.content.startswith("!iknow "):
-                        language = "language_" + message.content.replace("!iknow ", "").lower()
-                        roleSet = 0
-                        for role in message.server.roles:
-                            if language in role.name:
-                                characters.setLanguages(character, role)
-                                await client.send_message(message.channel, characters.characters[character].name +
-                                                          " now knows " + language[9:])
-                                print("Adding", message.author, "to", role)
-                                await client.add_roles(message.author, role)
-                                roleSet = 1
-                                break
-                        if roleSet == 0:
-                            await client.send_message(message.channel, "Do you speak english in what?")
+            if message.content.startswith("!languages"):
+                name = characters.getActive(message.author)
+                for language in characters.getLanguages(message.author):
+                    await client.send_message(message.channel, name + " knows " + str(language)[9:])
+                return
 
-                    if message.content.startswith("!languages"):
-                        for language in characters.getLanguages(character):
-                            await client.send_message(message.channel, character + " knows " + str(language)[9:])
+            if message.content.startswith("!iknow "):
+                name = characters.getActive(message.author)
+                language = "language_" + message.content.replace("!iknow ", "").lower()
+                roleSet = 0
+                for role in message.server.roles:
+                    if language in role.name:
+                        characters.setLanguages(message.author, role)
+                        await client.send_message(message.channel, name + " now knows " + language[9:])
+                        print("Adding", message.author, "to", role)
+                        await client.add_roles(message.author, role)
+                        roleSet = 1
+                        break
+                if roleSet == 0:
+                    await client.send_message(message.channel, "Do you speak english in what?")
+                return
 
-                    if message.content.startswith("!me"):
-                        #Gets users active character info
-                        infoWars = "Character Name: " + characters.characters[character].name + "\n"
-                        infoWars += "Class: " + characters.characters[character].gofuckyourself["characterClass"] + "\n"
-                        infoWars += "Level: " + str(characters.characters[character].gofuckyourself["level"]) + "\n"
-                        infoWars += "Health: " + str(characters.characters[character].gofuckyourself["currentHealth"]) + \
-                                    "/" + str(characters.characters[character].gofuckyourself["maxHealth"]) + "\n"
-                        infoWars += "Race: " + characters.characters[character].gofuckyourself["race"] + "\n"
-                        infoWars += "Gold: " + str(characters.characters[character].gofuckyourself["gold"]) + "\n"
-                        stats = characters.getStats(character)
-                        for key, value in stats.items():
-                            infoWars += key + ": " + str(value) + "\n"
-                        for language in characters.getLanguages(character):
-                            infoWars += character + " knows " + str(language)[9:] + "\n"
+            if message.content.startswith("!me"):
+                temp = characters.getCharacters(message.author)
+                infoWars = "------------"
+                for character in temp:
+                    infoWars += character
+                print(infoWars)
+                await client.send_message(message.author, infoWars)
+                return
 
-                        await client.send_message(message.author, infoWars)
+            if message.content.startswith("!set"):
+                name = characters.getActive(message.author)
+                # Allow the user to set whatever they want
+                thing = message.content.lower().replace("!set", "").split()
+                if len(thing) == 1:
+                    # The user is trying to use one of the prebuilt sets
+                    if thing[0] == "stats":
+                        introMsg = "How would you like to build your character?\n"
+                        introMsg += "Point Buy, Roll or Random?"
+                        await client.send_message(message.channel, introMsg)
 
-                    if message.content.startswith("!set"):
-                        # Allow the user to set whatever they want
-                        thing = message.content.lower().replace("!set", "").split()
-                        if len(thing) == 1:
-                            # The user is trying to use one of the prebuilt sets
-                            if thing[0] == "stats":
-                                introMsg = "How would you like to build your character?\n"
-                                introMsg += "Point Buy, Roll or Random?"
-                                await client.send_message(message.channel, introMsg)
+                        def check(msg):
+                            return msg.content.replace(" ", "").lower().startswith('pointbuy') \
+                                    or msg.content.replace(" ", "").lower().startswith('roll') \
+                                    or msg.content.replace(" ", "").lower().startswith('random')
 
-                                def check(msg):
-                                    return msg.content.replace(" ", "").lower().startswith('pointbuy') \
-                                           or msg.content.replace(" ", "").lower().startswith('roll') \
-                                           or msg.content.replace(" ", "").lower().startswith('random')
+                        message = await client.wait_for_message(author=message.author, check=check)
+                        buildWith = message.content.replace(" ", "").lower()
+                        if buildWith.startswith('pointbuy'):
+                            characters.characters[message.author][name].builtUsing = "pointbuy"
+                            await client.send_message(message.channel,
+                                                        "Ok, building your character with the point buy System")
 
-                                message = await client.wait_for_message(author=message.author, check=check)
-                                buildWith = message.content.replace(" ", "").lower()
-                                if buildWith.startswith('pointbuy'):
-                                    characters.characters[character].builtUsing = "pointbuy"
-                                    await client.send_message(message.channel,
-                                                              "Ok, building your character with the point buy System")
+                        if buildWith.startswith('roll'):
+                            characters.characters[message.author][name].builtUsing = "roll"
+                            await client.send_message(message.channel,
+                                                        "Ok, building your character by rolling for values")
 
-                                if buildWith.startswith('roll'):
-                                    characters.characters[character].builtUsing = "roll"
-                                    await client.send_message(message.channel,
-                                                              "Ok, building your character by rolling for values")
+                        if buildWith.startswith('random'):
+                            characters.characters[message.author][name].builtUsing = "random"
+                            await client.send_message(message.channel,
+                                                        "Ok, randomly setting values for your character")
+                            characters.setRandomStats(message.author)
+                            statMessage = "Here are your character's Stats! Good luck!\n"
+                            stats = characters.getStats(message.author)
+                            for key, value in stats.items():
+                                statMessage += key + ": " + str(value) + "\n"
+                            await client.send_message(message.channel, statMessage)
 
-                                if buildWith.startswith('random'):
-                                    characters.characters[character].builtUsing = "random"
-                                    await client.send_message(message.channel,
-                                                              "Ok, randomly setting values for your character")
-                                    characters.setRandomStats(character)
-                                    statMessage = "Here are your character's Stats! Good luck!\n"
-                                    stats = characters.getStats(character)
-                                    for key, value in stats.items():
-                                        statMessage += key + ": " + str(value) + "\n"
-                                    await client.send_message(message.channel, statMessage)
+                    if thing[0] == "race":
+                        await client.send_message(message.channel, "What race are you?")
+                        raceList = ["dwarf", "elf", "halfling", "human", "dragonborn",
+                                    "gnome", "half-elf", "half-orc", "tiefling"]
 
-                            if thing[0] == "race":
-                                await client.send_message(message.channel, "What race are you?")
-                                raceList = ["dwarf", "elf", "halfling", "human", "dragonborn",
-                                            "gnome", "half-elf", "half-orc", "tiefling"]
+                        def check(msg):
+                            return msg.content.replace(" ", "").lower().startswith(tuple(raceList))
 
-                                def check(msg):
-                                    return msg.content.replace(" ", "").lower().startswith(tuple(raceList))
+                        message = await client.wait_for_message(author=message.author, check=check)
 
-                                message = await client.wait_for_message(author=message.author, check=check)
+                        race = message.content.replace(" ", "")
+                        characters.characters[message.author][name].gofuckyourself["race"] = race
+                        await client.send_message(message.channel, "You are now a " + race)
 
-                                race = message.content.replace(" ", "")
-                                characters.characters[character].gofuckyourself["race"] = race
-                                await client.send_message(message.channel, "You are now a " + race)
+                    if thing[0] == "class":
+                        await client.send_message(message.channel, "What class are you?")
+                        characterClassList = ["barbarian", "bard", "cleric", "druid", "fighter",
+                                                "monk", "paladin", "ranger", "rogue", "sorcerer", "warlock",
+                                                "wizard"]
 
-                            if thing[0] == "class":
-                                await client.send_message(message.channel, "What class are you?")
-                                characterClassList = ["barbarian", "bard", "cleric", "druid", "fighter",
-                                                      "monk", "paladin", "ranger", "rogue", "sorcerer", "warlock",
-                                                      "wizard"]
+                        def check(msg):
+                            return msg.content.replace(" ", "").lower().startswith(tuple(characterClassList))
 
-                                def check(msg):
-                                    return msg.content.replace(" ", "").lower().startswith(tuple(characterClassList))
+                        message = await client.wait_for_message(author=message.author, check=check)
 
-                                message = await client.wait_for_message(author=message.author, check=check)
+                        characterClass = message.content.replace(" ", "")
+                        characters.characters[message.author][name].gofuckyourself["characterClass"] = characterClass
+                        await client.send_message(message.channel, "You are now a " + characterClass)
 
-                                characterClass = message.content.replace(" ", "")
-                                characters.characters[character].gofuckyourself["characterClass"] = characterClass
-                                await client.send_message(message.channel, "You are now a " + characterClass)
+                        characters.setActive(character, message.author)
 
-                                characters.setActive(character, message.author)
-
-                        if len(thing) == 2:
-                            # the user is trying to set a specific thing
-                            # !set strength 16
-                            characters.set(character, thing[0], thing[1])
+                if len(thing) == 2:
+                    # the user is trying to set a specific thing
+                    # !set strength 16
+                    characters.set(character, thing[0], thing[1])
 
             if message.content.lower().startswith("!newcharacter ") or message.content.lower().startswith("!newchar "):
                 characterName = \
@@ -227,7 +219,7 @@ async def on_message(message):
                     await client.send_message(message.channel, characterName + " is now active.")
 
                     # Add user to the languages for that active character
-                    for language in characters.getLanguages(characterName):
+                    for language in characters.getLanguages(message.author):
                         print("Adding", message.author, "to", role)
                         await client.add_roles(message.author, language)
                 else:

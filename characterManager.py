@@ -18,30 +18,37 @@ class characterManager:
         return False
 
     def addCharacter(self, name, owner):
-        # False for already exists True for successfully created character
-        if self.characterExists(name):
-            return False
-        self.characters[name] = Character(name, owner, False)
-        print("Created", name)
-        return True
+        if owner in self.characters:
+            ownerCharacters = self.characters[owner]
+            if name in ownerCharacters:
+                return False
+            else:
+                self.characters[owner][name] = Character(name, owner, False)
+                return True
+        else:
+            self.characters[owner] = {}
+            self.characters[owner][name] = Character(name, owner, False)
+            return True
 
     def setActive(self, name, owner):
-        if self.characterExists(name) and self.characters[name].owner == owner:
-            for character in self.characters:
-                if self.characters[character].owner == owner:
-                    self.characters[character].active = False
-            self.characters[name].active = True
+        try:
+            for character in self.characters[owner]:
+                self.characters[owner][character].active = False
+            self.characters[owner][name].active = True
             return True
-        else:
+        except:
             return False
 
+
     def getActive(self,owner):
-        for character in self.characters:
-            if self.characters[character].owner == owner:
-                if self.characters[character].active == True:
+        try:
+            for character in self.characters[owner]:
+                if self.characters[owner][character].active == True:
                     return character
-        return False
-    
+            return False
+        except:
+            return False
+
     def roll(self,owner,statType):
         character = self.getActive(owner)
         if character == False:
@@ -50,7 +57,7 @@ class characterManager:
             diceType = 20
             output = character + " is rolling for "+statType + "\n"
             output += "Using a d"+str(20)+" "+character+" rolled a "+str(self.utility.roll(1,20))
-            raceAbilities = self.raceMgr.races[self.getClass(owner)].abilities
+            raceAbilities = self.raceMgr.races[self.getRace(owner)].abilities
             if statType in raceAbilities:
                 if raceAbilities[statType] > 0:
                     output += "+"+str(raceAbilities[statType])+"(race)"
@@ -59,33 +66,42 @@ class characterManager:
             print(output)
 
     def getCharacters(self, owner):
-        ownersCharacters = []
-        for character in self.characters:
-            if self.characters[character].owner == owner:
-                ownersCharacters.append(character)
-        return ownersCharacters
+        try:
+            print("getting the character")
+            print(self.characters[owner])
+            characters = []
+            for key,value in self.characters[owner].items():
+                print(value)
+                characters.append(str(value))
+            return characters
+        except:
+            return []
 
-    def addSkill(self, characterName, skill):
-        self.characters[characterName].skills.append(skill)
+    def addSkill(self, owner, skill):
+        character = self.getActive(owner)
+        self.characters[owner][character].skills.append(skill)
 
-    def addItem(self, characterName, item):
-        self.characters[characterName].items.append(item)
+    def addItem(self, owner, item):
+        character = self.getActive(owner)
+        self.characters[owner][character].items.append(item)
 
-    def setLanguages(self, characterName, language):
-        self.characters[characterName].languages.append(language)
+    def setLanguages(self, owner, language):
+        character = self.getActive(owner)
+        self.characters[owner][character].languages.append(language)
 
-    def getLanguages(self, characterName):
+    def getLanguages(self, owner):
+        character = self.getActive(owner)
         knownLanguages = []
-        for language in self.characters[characterName].languages:
+        for language in self.characters[owner][character].languages:
             knownLanguages.append(language)
         return knownLanguages
 
-    def getClass(self,owner):
+    def getRace(self,owner):
         character = self.getActive(owner)
         if character == False:
             return False
         else:
-            return self.characters[character].gofuckyourself["race"]
+            return self.characters[owner][character].gofuckyourself["race"]
 
     def setRace(self,owner,raceName):
         character = self.getActive(owner)
@@ -93,29 +109,31 @@ class characterManager:
             return False
         else:
             if raceName in self.raceMgr.races:
-                self.characters[character].gofuckyourself["race"] = raceName
+                self.characters[owner][character].gofuckyourself["race"] = raceName
                 print("Your race is now: "+ raceName)
             else:
                 print("pick a real race you dunce\n")
                 print(", ".join(self.raceMgr.races))
 
     # sets values work on this logic to update anything not just stats
-    def set(self, characterName, thing, value):
+    def set(self, owner, thing, value):
+        character = self.getActive(owner)
         statList = ["str", "strength", "dex", "dexterity", "int", "intelligence",
                     "con", "constitution", "wis", "wisdom", "cha", "charisma"]
         if thing in statList:
-            self.characters[characterName].attributes.stats[thing] = value
+            self.characters[owner][character].attributes.stats[thing] = value
             print("Setting stat:", thing, "to", value)
         # TODO add the ability to edit everything else
         else:
-            self.characters[characterName].gofuckyourself[thing] = value
+            self.characters[owner][character].gofuckyourself[thing] = value
             print("set", thing, "to", value)
 
-    def setRandomStats(self, characterName):
+    def setRandomStats(self, owner):
+        character = self.getActive(owner)
         #sets the attributes to random values
         # Roll method of generating dnd character
         # Roll 4 6 sided dice and keep the top 3 then set the value to a stat
-        for stat in self.characters[characterName].attributes.stats:
+        for stat in self.characters[owner][character].attributes.stats:
             # print(stat)
             rolls = self.utility.roll(4, 6)
             # print("These are the random roll numbers", rolls)
@@ -123,10 +141,11 @@ class characterManager:
             # print("These are the random roll numbers after removing the lowest one", rolls)
             total = sum(rolls)
             # print(total)
-            self.set(characterName, stat, total)
+            self.set(owner, stat, total)
 
-    def getStats(self, characterName):
-        return self.characters[characterName].attributes.stats
+    def getStats(self, owner):
+        character = self.getActive(owner)
+        return self.characters[owner][character].attributes.stats
 
 
 class Character:
@@ -149,6 +168,17 @@ class Character:
             'description': "Not Set",
             'alignment': "Not Set"
         }
+
+    def __str__(self):
+        output = "Character Name: " + self.name + "\n"
+        output += "Class: " + self.gofuckyourself["characterClass"] + "\n"
+        output += "Level: " + str(self.gofuckyourself["level"]) + "\n"
+        output += "Health: " + str(self.gofuckyourself["currentHealth"]) + \
+                    "/" + str(self.gofuckyourself["maxHealth"]) + "\n"
+        output += "Race: " + self.gofuckyourself["race"] + "\n"
+        output += "Gold: " + str(self.gofuckyourself["gold"]) + "\n"
+        output += "Attributes: \n"+ str(self.attributes)
+        return output
 
 
 class Attributes:
@@ -175,8 +205,12 @@ class Attributes:
             'wisdom': 0,
             'charisma': 0
         }
-        self.utility = Utility()
-        self.characterManager = characterManager()
+
+    def __str__(self):
+        output = ""
+        for elem in self.stats:
+            output += elem+": "+str(self.stats[elem])+"\n"
+        return output
 
 
 class CharacterClass:
