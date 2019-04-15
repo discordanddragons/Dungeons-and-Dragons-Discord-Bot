@@ -1,4 +1,5 @@
 # Work with Python 3.6
+import discord
 from discord.ext import commands
 from random import randint
 import re
@@ -120,8 +121,10 @@ async def newchar(ctx, characterName):
     characterName = characterName.lower().capitalize()
     if characters.addCharacter(characterName, ctx.author):
         characters.setActive(characterName, ctx.author)
-
-        await ctx.author.add_roles(ctx.author, "Active")
+        role = discord.utils.get(ctx.guild.roles, name="Active")
+        user = ctx.message.author
+        await user.add_roles(role)
+        await user.edit(nick=characterName)
         await ctx.send(characterName + " has risen and is active.")
     else:
         await ctx.send(characterName + " was already made.")
@@ -141,9 +144,11 @@ async def active(ctx, characterName):
         await ctx.send(characterName + " is now active.")
 
         # Add user to the languages for that active character
-        for language in characters.getLanguages(characterName):
+        for language in characters.getLanguages(ctx.author):
             print("Adding", ctx.author, "to", role)
-            await client.add_roles(ctx.author, language)
+            await ctx.author.add_roles(language)
+            user = ctx.message.author
+            await user.edit(nick=characterName)
     else:
         await ctx.send(characterName + " could not be set as active")
 
@@ -160,7 +165,7 @@ async def iknow(ctx, language):
             message = "```" + character + " now knows " + language[9:] + "```"
             await ctx.send(message)
             print("Adding", ctx.author, "to", role)
-            await client.add_roles(ctx.author, role)
+            await ctx.author.add_roles(role)
             roleSet = 1
             break
     if roleSet == 0:
@@ -175,7 +180,7 @@ async def me(ctx):
     for character in temp:
         infoWars += character
     print(infoWars)
-    await client.send(ctx.author, infoWars)
+    await ctx.author.send(infoWars)
     return
 
 
@@ -184,7 +189,8 @@ async def me(ctx):
     # shows all the characters that are owned by a user
     name = str(user)
     for character in characters.getCharacters(user):
-        await ctx.send(name + " owns " + character)
+        message = name + " owns " + character
+        await ctx.author.send(message)
 
 
 @client.command()
@@ -238,8 +244,8 @@ async def roll(ctx, roll):
 
 
 @client.command()
-@commands.has_role(['Player', 'DM'])
-async def set(ctx, *, thing):
+@commands.has_role(['Active'])
+async def set(ctx, thing):
     # Allow the user to set whatever they want
     thing = thing.lower().split()
     if characters.getActive(ctx.author):
@@ -317,36 +323,37 @@ async def set(ctx, *, thing):
             characters.set(character, thing[0], thing[1])
 
 
-@client.command()
-@commands.has_role(['DM'])
-async def registerLanguage(ctx, language):
+@client.command(aliases=['al'])
+@commands.has_role('DM')
+async def addLanguage(ctx, language):
     for guild in client.guilds:
         print(guild)
         channelname = "language_" + language.replace("!registerLanguage ", "").lower()
         print(channelname)
-        newChannel = await guild.create_voice_channel(channelname)
-        role = await guild.create_role(channelname)
-        newRole = await guild.add_roles(ctx.author, role)
-        roles = ctx.guild.roles
-        newChannel.overwrites_for(newRole)
-        overwrite = guild.PermissionOverwrite()
-        overwrite.connect = False
+
+        #Create a new voice channel
+        await guild.create_voice_channel(channelname)
+
+        #create a new role
+        await guild.create_role(name=channelname)
+
+        #set it so that noone can enter the channel
+        channel = discord.utils.get(ctx.guild.channels, name=channelname)
+
+        for role in guild.roles:
+            await channel.set_permissions(role, connect=False)
         # if there is a reason to make chats hidden until joined then uncomment this
         # overwrite.read_messages = False
 
-        for role in roles:
-            if role.is_everyone:
-                await guild.edit_channel_permissions(newChannel, role, overwrite)
-                break
 
-
-@client.command()
-@commands.has_role(['DM'])
+@client.command(aliases=['rl'])
+@commands.has_role('DM')
 async def removeLanguage(ctx, language):
     language = "language_" + language.replace("!registerLanguage ", "").lower()
-    for guild in client.guilds:
-        guild.delete_role(guild, language)
-        guild.delete_channel(language)
+    role = discord.utils.get(ctx.guild.roles, name=language)
+    await role.delete()
+    channel = discord.utils.get(ctx.guild.channels, name=language)
+    await channel.delete()
     await ctx.send("Removed " + language)
 
 
