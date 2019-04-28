@@ -84,11 +84,11 @@ def gameTest():
         else:
             status &= test(testName, game.addPlayer(playerName, characterName))
     status &= test("Deleting Player 1 from game", game.deletePlayer("player 1"))
+    print(game)
 
 
-
-characterManagerTest()
-UtilityTest()
+#characterManagerTest()
+#UtilityTest()
 gameTest()
-raceManagerTest()
-classManagerTest()
+#raceManagerTest()
+#classManagerTest()
