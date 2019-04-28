@@ -9,8 +9,6 @@ from characterManager import characterManager
 from characterManager import Utility
 TOKEN = 'NTYzMDUxMTA2ODkzMDM3NTk4.XKTzBA.kCuGuv8Onok8NZZm1Q5TfPfrGAc'
 
-# TODO Still need to do some role stuff to make sure people can't join things that they shouldn't be able to
-
 prefix = "!"
 client = commands.Bot(command_prefix=prefix, case_insensitive=True)
 
@@ -52,9 +50,7 @@ async def on_voice_state_update(before, after):
 
 @client.event
 async def on_message(message):
-    # TODO The DM is able to set the name of a game and players can join the game
-    # TODO The DM is able to remove players from the game
-    # TODO The DM is able to start the game
+    print(message)
     await client.process_commands(message)
 
 
