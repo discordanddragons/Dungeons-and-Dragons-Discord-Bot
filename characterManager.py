@@ -5,6 +5,76 @@ import re
 import json
 
 
+class gameManager:
+
+    def __init__(self):
+        self.games = {}
+
+    def addGame(self, name, size):
+        if name in self.games:
+            return False
+        else:
+            self.games[name] = Game(name, size, False)
+            return True
+
+    def setActive(self, gameName):
+        try:
+            for game in self.games:
+                # if any of the games are currently active, don't let the DM set another active game.
+                if self.games[game].active is True:
+                    return False
+                else:
+                    self.games[gameName].active = True
+                    return True
+        except:
+            return False
+
+    def getActive(self):
+        try:
+            for game in self.games:
+                if self.games[game].active is True:
+                    return game
+        except:
+            return False
+
+    def deActive(self):
+        try:
+            for game in self.games:
+                if self.games[game].active is True:
+                    self.games[game].active = False
+                    return True
+        except:
+            return False
+
+    def addPlayer(self, playerName, activeCharacterName):
+        try:
+            game = self.getActive()
+            if len(self.games[game].players) < self.games[game].size:
+                self.games[game].players[playerName] = activeCharacterName
+                return True
+            else:
+                return False
+        except:
+            return False
+
+    def deletePlayer(self, playerName):
+        try:
+            game = self.getActive()
+            self.games[game].players.pop(playerName, None)
+            return True
+        except:
+            return False
+
+
+class Game:
+    def __init__(self, name, size, active):
+        self.name = name
+        self.active = active
+        self.size = size
+        self.players = {}
+        self.encounter = []
+
+
 class characterManager:
 
     def __init__(self):

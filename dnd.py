@@ -356,5 +356,12 @@ async def removeLanguage(ctx, language):
     await channel.delete()
     await ctx.send("Removed " + language)
 
+# TODO DM can create a game
+# TODO The game has a dictionary of all the players and the characters that they are playing
+# TODO DM can show all games that is on the server and set a game to active
+# TODO DM can kick players out of a game
+# TODO DM can add players to a game
+# TODO Players can join a game
+
 
 client.run(TOKEN)
