@@ -94,7 +94,7 @@ class Game:
         self.name = name
         self.active = active
         self.size = size
-        self.description
+        self.description = ""
         self.players = {}
         self.encounter = []
 
