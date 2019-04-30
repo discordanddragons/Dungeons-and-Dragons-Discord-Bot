@@ -195,35 +195,90 @@ class monsterManager:
         # load json and add a class for each class
         self.monsters = {}
         with open('./json/monsters.json', encoding="utf8") as f:
-            data = json.load(f)
-        for monster in self.monsters:
-            name = ""
-            if "name" in monster:
-                name = monster["name"]
-            self.monsters[monster["name"]] = monster(name)
+            self.data = json.load(f)
+        for monster in self.data:
+            self.monsters[monster["name"]] = Monster(monster["name"])
+            self.monsters[monster["name"]].meta = monster["meta"]
+            self.monsters[monster["name"]].armorClass = monster["Armor Class"]
+            self.monsters[monster["name"]].hp = monster["Hit Points"]
+            self.monsters[monster["name"]].stre = monster["STR"]
+            self.monsters[monster["name"]].dex = monster["DEX"]
+            self.monsters[monster["name"]].con = monster["CON"]
+            self.monsters[monster["name"]].inte = monster["INT"]
+            self.monsters[monster["name"]].wis = monster["WIS"]
+            self.monsters[monster["name"]].cha = monster["CHA"]
+            if "Saving Throws" in monster:
+                self.monsters[monster["name"]].savingThrows = monster["Saving Throws"]
+            if "Skills" in monster:
+                self.monsters[monster["name"]].skills = monster["Skills"]
+            if "Damage Immunities" in monster:
+                self.monsters[monster["name"]].damageImmunities = monster["Damage Immunities"]
+            if "Senses" in monster:
+                self.monsters[monster["name"]].senses = monster["Senses"]
+            self.monsters[monster["name"]].languages = monster["Languages"]
+            self.monsters[monster["name"]].challenge = monster["Challenge"]
+            if "Traits" in monster:
+                self.monsters[monster["name"]].traits = monster["Traits"]
+            if "Actions" in monster:
+                self.monsters[monster["name"]].actions = monster["Actions"]
+            if "Legendary Actions" in monster:
+                self.monsters[monster["name"]].legendaryActions = monster["Legendary Actions"]
+            self.monsters[monster["name"]].img = monster["img_url"]
 
     def __str__(self):
         output = ""
-        for elem in self.monsters:
-            output += elem + ": \n"
-            output += str(self.monsters[elem])
+        for monster in self.monsters:
+            output += monster + ": " + str(self.monsters[monster].name) + "\n"
+            output += "meta" + ": " + str(self.monsters[monster].meta) + "\n"
+            output += "Armor Class" + ": " + str(self.monsters[monster].armorClass) + "\n"
+            output += "hp" + ": " + str(self.monsters[monster].hp) + "\n"
+            output += "speed" + ": " + str(self.monsters[monster].speed) + "\n"
+            output += "stre" + ": " + str(self.monsters[monster].stre) + "\n"
+            output += "dex" + ": " + str(self.monsters[monster].dex) + "\n"
+            output += "con" + ": " + str(self.monsters[monster].con) + "\n"
+            output += "inte" + ": " + str(self.monsters[monster].inte) + "\n"
+            output += "wis" + ": " + str(self.monsters[monster].wis) + "\n"
+            output += "cha" + ": " + str(self.monsters[monster].cha) + "\n"
+            output += "savingThrows" + ": " + str(self.monsters[monster].savingThrows) + "\n"
+            output += "skills" + ": " + str(self.monsters[monster].skills) + "\n"
+            output += "languages" + ": " + str(self.monsters[monster].languages) + "\n"
+            output += "challenge" + ": " + str(self.monsters[monster].challenge) + "\n"
+            output += "damageImmunities" + ": " + str(self.monsters[monster].damageImmunities) + "\n"
+            output += "senses" + ": " + str(self.monsters[monster].senses) + "\n"
+            output += "traits" + ": " + str(self.monsters[monster].traits) + "\n"
+            output += "actions" + ": " + str(self.monsters[monster].actions) + "\n"
+            output += "legendaryActions" + ": " + str(self.monsters[monster].legendaryActions) + "\n"
+            output += "img" + ": " + str(self.monsters[monster].img) + "\n"
         return output
 
 
-class monster:
+class Monster:
     def __init__(self, name):
         self.name = name
         self.meta = ""
-        self.ac = ""
+        self.armorClass = ""
         self.hp = ""
         self.speed = ""
+        self.stre = ""
+        self.dex = ""
+        self.con = ""
+        self.inte = ""
+        self.wis = ""
+        self.cha = ""
+        self.savingThrows = ""
+        self.skills = ""
+        self.languages = ""
+        self.challenge = ""
+        self.damageImmunities = ""
+        self.senses = ""
+        self.traits = ""
+        self.actions = ""
+        self.legendaryActions = ""
+        self.img = ""
 
-    def __str__(self):
-        output = ""
-        for elem in self.monsters:
-            output += elem + ": \n"
-            output += str(self.monsters[elem])
-        return output
+
+
+
 
 
 class characterManager:
