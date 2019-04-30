@@ -5,6 +5,8 @@ authorName = "Esteban"
 gameName = "Lord Of The Rings"
 gameName2 = "Kung Fu Hustle"
 gameSize = 4
+encounterName = "Battle For Smaug"
+encounterName2 = "Taco Rush"
 
 
 def test(testName,condition,expectedValue = True):
@@ -87,9 +89,46 @@ def gameTest():
     status &= test("Get all games", len(game.getGames()) > 0)
     print(game)
 
+def encounterTest():
+    print("\nTesting Encounter creation commands")
+    status = True
+    game = gameManager()
+    print("New Game Creation")
+    status &= test("New Game", game.addGame(gameName, gameSize))
+    status &= test("setActive", game.setActive(gameName))
+    print("\nNew Encounter Creation")
+
+    status &= test("New Encounter", game.addEncounter(encounterName))
+    status &= test("setActive Encounter", game.setActiveEncounter(encounterName))
+    status &= test("get active Encounter", game.getActiveEncounter(), encounterName)
+    status &= test("New Encounter 2", game.addEncounter(encounterName2))
+    status &= test("setActive when Encounter is already active", game.setActiveEncounter(encounterName2), False)
+    status &= test("Deactiveate Encounter", game.deActiveEncounter())
+    status &= test("setActive Encounter 2", game.setActiveEncounter(encounterName2))
+    status &= test("getActive", game.getActiveEncounter(), encounterName2)
+    status &= test("Add snek to active game", game.addMonster("snek"))
+    status &= test("Get all encounters", len(game.getEncounters()) > 0)
+    print("\n")
+    print(game)
+
+def monsterManagerTest():
+    print("\nTesting Monsters")
+    status = True
+    monster = monsterManager()
+    # status &= test("New Game", game.addGame(gameName, gameSize))
+    print(monster)
+
 
 #characterManagerTest()
 #UtilityTest()
-gameTest()
+#gameTest()
 #raceManagerTest()
 #classManagerTest()
+#encounterTest()
+monsterManagerTest()
+
+
+
+
+
+
