@@ -10,6 +10,13 @@ class gameManager:
     def __init__(self):
         self.games = {}
 
+    def __str__(self):
+        output = ""
+        for elem in self.games:
+            output += elem + ": \n"
+            output += str(self.games[elem])
+        return output
+
     def addGame(self, name, size):
         if name in self.games:
             return False
@@ -65,14 +72,42 @@ class gameManager:
         except:
             return False
 
+    def getGames(self):
+        try:
+            gameList = []
+            for game in self.games:
+                gameList.append(game)
+                return gameList
+        except:
+            return False
+
+    def getPlayers(self):
+        try:
+            game = self.getActive()
+            return self.games[game].players
+        except:
+            return False
+
 
 class Game:
     def __init__(self, name, size, active):
         self.name = name
         self.active = active
         self.size = size
+        self.description = ""
         self.players = {}
         self.encounters = {}
+
+    def __str__(self):
+        output = ""
+        output += "Name: " + self.name + "\n"
+        output += "Active: " + str(self.active) + "\n"
+        output += "Size: " + str(self.size) + "\n"
+        for player in self.players:
+            output += player + ": " + str(self.players[player]) + "\n"
+        for encounter in self.encounter:
+            output += encounter+": "+str(self.encounter[encounter])+"\n"
+        return output
 
     def addEncounter(self, name):
         try:
@@ -103,6 +138,7 @@ class Encounter:
                 return False
         except:
             return False
+
 
 class characterManager:
 
