@@ -72,8 +72,37 @@ class Game:
         self.active = active
         self.size = size
         self.players = {}
-        self.encounter = []
+        self.encounters = {}
 
+    def addEncounter(self, name):
+        try:
+            if name in self.encounters:
+                return False
+            else:
+                self.encounter[name] = Encounter(name, False)
+                return True
+        except:
+            return False
+
+
+class Encounter:
+    def __init__(self, name, active):
+        self.name = name
+        self.active = active
+        self.monsters = []
+
+    def addMonster(self, name):
+        monsterList = []
+        npcList = []
+        try:
+            if name in monsterList:
+                self.monsters.append(name)
+            if name in npcList:
+                self.monsters.append(name)
+            else:
+                return False
+        except:
+            return False
 
 class characterManager:
 
