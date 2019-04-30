@@ -88,6 +88,71 @@ class gameManager:
         except:
             return False
 
+    def addEncounter(self, name):
+        try:
+            game = self.getActive()
+            if name in self.games[game].encounters:
+                return False
+            else:
+                self.games[game].encounters[name] = Encounter(name, False)
+                return True
+        except:
+            return False
+
+    def getEncounters(self):
+        try:
+            game = self.getActive()
+            encounterList = []
+            for encounter in self.games[game].encounters:
+                encounterList.append(encounter)
+                return encounterList
+        except:
+            return False
+
+    def setActiveEncounter(self, encounterName):
+        try:
+            game = self.getActive()
+            for encounter in self.games[game].encounters:
+                if self.games[game].encounters[encounter].active is True:
+                    return False
+                else:
+                    self.games[game].encounters[encounterName].active = True
+                    return True
+        except:
+            return False
+
+    def getActiveEncounter(self):
+        try:
+            game = self.getActive()
+            for encounter in self.games[game].encounters:
+                if self.games[game].encounters[encounter].active is True:
+                    return encounter
+        except:
+            return False
+
+    def deActiveEncounter(self):
+        try:
+            game = self.getActive()
+            encounter = self.getActiveEncounter()
+            self.games[game].encounters[encounter].active = False
+            return True
+        except:
+            return False
+
+    def addMonster(self, name):
+        monsterList = ["snek"]
+        npcList = ["bob"]
+        try:
+            game = self.getActive()
+            encounter = self.getActiveEncounter()
+            if name in monsterList or name in npcList:
+                self.games[game].encounters[encounter].monsters.append(name)
+                return True
+            else:
+                return False
+        except:
+            return False
+
 
 class Game:
     def __init__(self, name, size, active):
@@ -105,19 +170,9 @@ class Game:
         output += "Size: " + str(self.size) + "\n"
         for player in self.players:
             output += player + ": " + str(self.players[player]) + "\n"
-        for encounter in self.encounter:
-            output += encounter+": "+str(self.encounter[encounter])+"\n"
+        for encounter in self.encounters:
+            output += encounter+": "+str(self.encounters[encounter])+"\n"
         return output
-
-    def addEncounter(self, name):
-        try:
-            if name in self.encounters:
-                return False
-            else:
-                self.encounter[name] = Encounter(name, False)
-                return True
-        except:
-            return False
 
 
 class Encounter:
@@ -126,18 +181,49 @@ class Encounter:
         self.active = active
         self.monsters = []
 
-    def addMonster(self, name):
-        monsterList = []
-        npcList = []
-        try:
-            if name in monsterList:
-                self.monsters.append(name)
-            if name in npcList:
-                self.monsters.append(name)
-            else:
-                return False
-        except:
-            return False
+    def __str__(self):
+        output = ""
+        output += "Name: " + self.name + "\n"
+        output += "Active: " + str(self.active) + "\n"
+        for elem in self.monsters:
+            output += "Monsters: " + elem
+        return output
+
+
+class monsterManager:
+    def __init__(self):
+        # load json and add a class for each class
+        self.monsters = {}
+        with open('./json/monsters.json', encoding="utf8") as f:
+            data = json.load(f)
+        for monster in self.monsters:
+            name = ""
+            if "name" in monster:
+                name = monster["name"]
+            self.monsters[monster["name"]] = monster(name)
+
+    def __str__(self):
+        output = ""
+        for elem in self.monsters:
+            output += elem + ": \n"
+            output += str(self.monsters[elem])
+        return output
+
+
+class monster:
+    def __init__(self, name):
+        self.name = name
+        self.meta = ""
+        self.ac = ""
+        self.hp = ""
+        self.speed = ""
+
+    def __str__(self):
+        output = ""
+        for elem in self.monsters:
+            output += elem + ": \n"
+            output += str(self.monsters[elem])
+        return output
 
 
 class characterManager:
