@@ -200,7 +200,8 @@ class monsterManager:
             self.monsters[monster["name"]] = Monster(monster["name"])
             self.monsters[monster["name"]].meta = monster["meta"]
             self.monsters[monster["name"]].armorClass = monster["Armor Class"]
-            self.monsters[monster["name"]].hp = monster["Hit Points"]
+            self.monsters[monster["name"]].hp = monster["Hit Points"].split()[0]
+            self.monsters[monster["name"]].speed = monster["Speed"].split()[0]
             self.monsters[monster["name"]].stre = monster["STR"]
             self.monsters[monster["name"]].dex = monster["DEX"]
             self.monsters[monster["name"]].con = monster["CON"]
@@ -214,13 +215,19 @@ class monsterManager:
             if "Damage Immunities" in monster:
                 self.monsters[monster["name"]].damageImmunities = monster["Damage Immunities"]
             if "Senses" in monster:
-                self.monsters[monster["name"]].senses = monster["Senses"]
+                self.monsters[monster["name"]].senses = monster["Senses"].split(",")
             self.monsters[monster["name"]].languages = monster["Languages"]
             self.monsters[monster["name"]].challenge = monster["Challenge"]
             if "Traits" in monster:
-                self.monsters[monster["name"]].traits = monster["Traits"]
+                self.monsters[monster["name"]].traits = monster["Traits"].split("<p><em><strong>")
+                self.monsters[monster["name"]].traits.pop(0)
+                for trait in self.monsters[monster["name"]].traits:
+                    index = self.monsters[monster["name"]].traits.index(trait)
+                    self.monsters[monster["name"]].traits[index] = self.monsters[monster["name"]].traits[index].replace("</strong>", "").replace(".</em>", "").replace("</p>", "")
+
             if "Actions" in monster:
-                self.monsters[monster["name"]].actions = monster["Actions"]
+                self.monsters[monster["name"]].actions = monster["Actions"].split("<p><em><strong>")
+                self.monsters[monster["name"]].actions.pop(0)
             if "Legendary Actions" in monster:
                 self.monsters[monster["name"]].legendaryActions = monster["Legendary Actions"]
             self.monsters[monster["name"]].img = monster["img_url"]
@@ -240,15 +247,18 @@ class monsterManager:
             output += "wis" + ": " + str(self.monsters[monster].wis) + "\n"
             output += "cha" + ": " + str(self.monsters[monster].cha) + "\n"
             output += "savingThrows" + ": " + str(self.monsters[monster].savingThrows) + "\n"
-            output += "skills" + ": " + str(self.monsters[monster].skills) + "\n"
+            if len(self.monsters[monster].skills) > 0:
+                output += "skills" + ": " + str(self.monsters[monster].skills) + "\n"
             output += "languages" + ": " + str(self.monsters[monster].languages) + "\n"
             output += "challenge" + ": " + str(self.monsters[monster].challenge) + "\n"
             output += "damageImmunities" + ": " + str(self.monsters[monster].damageImmunities) + "\n"
             output += "senses" + ": " + str(self.monsters[monster].senses) + "\n"
-            output += "traits" + ": " + str(self.monsters[monster].traits) + "\n"
+            if len(self.monsters[monster].traits) > 0:
+                output += "traits" + ": " + str(self.monsters[monster].traits) + "\n"
             output += "actions" + ": " + str(self.monsters[monster].actions) + "\n"
-            output += "legendaryActions" + ": " + str(self.monsters[monster].legendaryActions) + "\n"
-            output += "img" + ": " + str(self.monsters[monster].img) + "\n"
+            if len(str(self.monsters[monster].legendaryActions)) > 0:
+                output += "legendaryActions" + ": " + str(self.monsters[monster].legendaryActions) + "\n"
+            output += "img" + ": " + str(self.monsters[monster].img) + "\n\n"
         return output
 
 
@@ -270,9 +280,9 @@ class Monster:
         self.languages = ""
         self.challenge = ""
         self.damageImmunities = ""
-        self.senses = ""
-        self.traits = ""
-        self.actions = ""
+        self.senses = []
+        self.traits = []
+        self.actions = []
         self.legendaryActions = ""
         self.img = ""
 
