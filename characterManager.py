@@ -9,6 +9,7 @@ class gameManager:
 
     def __init__(self):
         self.games = {}
+        self.monsterMgr = monsterManager()
 
     def __str__(self):
         output = ""
@@ -140,19 +141,28 @@ class gameManager:
             return False
 
     def addMonster(self, name):
-        monsterList = ["snek"]
-        npcList = ["bob"]
         try:
-            game = self.getActive()
-            encounter = self.getActiveEncounter()
-            if name in monsterList or name in npcList:
+            # TODO Be able to add user created characters to encounters
+            if name in self.monsterMgr.monsters:
+                #  or characterManager.characterExists(name) is True
+                game = self.getActive()
+                encounter = self.getActiveEncounter()
                 self.games[game].encounters[encounter].monsters.append(name)
                 return True
             else:
+                print("Monster or NPC name not found")
                 return False
         except:
             return False
 
+    def getMonster(self, name):
+        try:
+            for monster in self.monsterMgr.monsters:
+                if name in monster:
+                    return self.monsterMgr.monsters[name]
+        except:
+            print("what")
+            return False
 
 class Game:
     def __init__(self, name, size, active):
@@ -167,7 +177,7 @@ class Game:
         output = ""
         output += "Name: " + self.name + "\n"
         output += "Active: " + str(self.active) + "\n"
-        output += "Size: " + str(self.size) + "\n"
+        output += "Max Players: " + str(self.size) + "\n"
         for player in self.players:
             output += player + ": " + str(self.players[player]) + "\n"
         for encounter in self.encounters:
@@ -180,13 +190,16 @@ class Encounter:
         self.name = name
         self.active = active
         self.monsters = []
+        self.description = ""
 
     def __str__(self):
         output = ""
         output += "Name: " + self.name + "\n"
         output += "Active: " + str(self.active) + "\n"
-        for elem in self.monsters:
-            output += "Monsters: " + elem
+        if len(self.monsters) > 0:
+            output += "Monsters: \n"
+            for elem in self.monsters:
+                output += "    " + elem + "\n"
         return output
 
 
@@ -240,10 +253,10 @@ class monsterManager:
             output += "Armor Class" + ": " + str(self.monsters[monster].armorClass) + "\n"
             output += "hp" + ": " + str(self.monsters[monster].hp) + "\n"
             output += "speed" + ": " + str(self.monsters[monster].speed) + "\n"
-            output += "stre" + ": " + str(self.monsters[monster].stre) + "\n"
+            output += "str" + ": " + str(self.monsters[monster].stre) + "\n"
             output += "dex" + ": " + str(self.monsters[monster].dex) + "\n"
             output += "con" + ": " + str(self.monsters[monster].con) + "\n"
-            output += "inte" + ": " + str(self.monsters[monster].inte) + "\n"
+            output += "int" + ": " + str(self.monsters[monster].inte) + "\n"
             output += "wis" + ": " + str(self.monsters[monster].wis) + "\n"
             output += "cha" + ": " + str(self.monsters[monster].cha) + "\n"
             output += "savingThrows" + ": " + str(self.monsters[monster].savingThrows) + "\n"
@@ -296,10 +309,43 @@ class Monster:
         self.legendaryActions = ""
         self.img = ""
 
-
-
-
-
+    def __str__(self):
+        output = ""
+        output += "Name" + ": " + str(self.name) + "\n"
+        output += "meta" + ": " + str(self.meta) + "\n"
+        output += "Armor Class" + ": " + str(self.armorClass) + "\n"
+        output += "hp" + ": " + str(self.hp) + "\n"
+        output += "speed" + ": " + str(self.speed) + "\n"
+        output += "str" + ": " + str(self.stre) + "\n"
+        output += "dex" + ": " + str(self.dex) + "\n"
+        output += "con" + ": " + str(self.con) + "\n"
+        output += "int" + ": " + str(self.inte) + "\n"
+        output += "wis" + ": " + str(self.wis) + "\n"
+        output += "cha" + ": " + str(self.cha) + "\n"
+        output += "savingThrows" + ": " + str(self.savingThrows) + "\n"
+        if len(self.skills) > 0:
+            output += "skills" + ": " + str(self.skills) + "\n"
+        output += "languages" + ": " + str(self.languages) + "\n"
+        output += "challenge" + ": " + str(self.challenge) + "\n"
+        output += "damageImmunities" + ": " + str(self.damageImmunities) + "\n"
+        if len(self.senses) > 0:
+            output += "senses" + ": " + "\n"
+            for sense in self.senses:
+                output += "    " + sense + "\n"
+        if len(self.traits) > 0:
+            output += "traits" + ": " + "\n"
+            for trait in self.traits:
+                output += "    " + trait + "\n"
+        if len(self.actions) > 0:
+            output += "actions" + ": " + "\n"
+            for action in self.actions:
+                output += "    " + action + "\n"
+        if len(str(self.legendaryActions)) > 0:
+            output += "legendaryActions" + ": " + "\n"
+            for legendaryAction in self.legendaryActions:
+                output += "    " + legendaryAction + "\n"
+        output += "img" + ": " + str(self.img) + "\n\n"
+        return output
 
 class characterManager:
 
