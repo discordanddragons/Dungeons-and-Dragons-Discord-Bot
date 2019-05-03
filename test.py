@@ -112,6 +112,9 @@ def encounterTest():
     print("\nNew Encounter Creation")
     status &= test("New Encounter", game.addEncounter(encounterName))
     status &= test("setActive Encounter", game.setActiveEncounter(encounterName))
+    status &= test("Add Zombie to active Encounter", game.addMonster("Zombie"))
+    status &= test("Add Zombie to active Encounter", game.addMonster("Zombie"))
+    status &= test("Add Zombie to active Encounter", game.addMonster("Zombie"))
     status &= test("get active Encounter", game.getActiveEncounter(), encounterName)
     status &= test("New Encounter 2", game.addEncounter(encounterName2))
     status &= test("setActive when Encounter is already active", game.setActiveEncounter(encounterName2), False)
@@ -122,10 +125,11 @@ def encounterTest():
     status &= test("Add Zombie to active Encounter", game.addMonster("Zombie"))
     status &= test("Add Zombie to active Encounter", game.addMonster("Zombie"))
     status &= test("Add Zombie to active Encounter", game.addMonster("Zombie"))
-    status &= test("Add Smaug to active Encounter", game.addMonster("Smaug"))
+    status &= test("Add Aboleth to active Encounter", game.addMonster("Aboleth"))
     status &= test("Get all encounters", len(game.getEncounters()) > 0)
     print("\n")
     # print(game)
+
 
 def monsterManagerTest():
     print("\nTesting Monsters")
