@@ -54,6 +54,7 @@ async def on_message(message):
     await client.process_commands(message)
 
 
+
 @client.event
 async def on_member_join(member):
     for role in member.guild.roles:
@@ -132,10 +133,11 @@ async def active(ctx, characterName):
     characterName = characterName.lower().lstrip().capitalize()
     if characters.setActive(characterName, ctx.author):
         # remove user from all language roles
+        user = ctx.message.author
         for role in ctx.author.roles:
             if str(role).startswith("language_"):
                 print("removing", ctx.author, "from", role)
-                await client.remove_roles(ctx.author, role)
+                await user.remove_roles(ctx.author, role)
 
         await ctx.send(characterName + " is now active.")
 
@@ -191,6 +193,7 @@ async def me(ctx):
 
 @client.command()
 async def flip(ctx):
+    """Flips a coin."""
     flip = utility.flip()
     print(flip)
     await ctx.send(flip)
