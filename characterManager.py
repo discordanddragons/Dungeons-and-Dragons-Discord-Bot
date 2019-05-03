@@ -195,8 +195,8 @@ class monsterManager:
         # load json and add a class for each class
         self.monsters = {}
         with open('./json/monsters.json', encoding="utf8") as f:
-            self.data = json.load(f)
-        for monster in self.data:
+            data = json.load(f)
+        for monster in data:
             self.monsters[monster["name"]] = Monster(monster["name"])
             self.monsters[monster["name"]].meta = monster["meta"]
             self.monsters[monster["name"]].armorClass = monster["Armor Class"]
@@ -219,17 +219,17 @@ class monsterManager:
             self.monsters[monster["name"]].languages = monster["Languages"]
             self.monsters[monster["name"]].challenge = monster["Challenge"]
             if "Traits" in monster:
-                self.monsters[monster["name"]].traits = monster["Traits"].split("<p><em><strong>")
+                traits = monster["Traits"].replace(".</strong></em>", ":").replace("</p>", "").replace("</strong></em>", "")
+                self.monsters[monster["name"]].traits = traits.split("<p><em><strong>")
                 self.monsters[monster["name"]].traits.pop(0)
-                for trait in self.monsters[monster["name"]].traits:
-                    index = self.monsters[monster["name"]].traits.index(trait)
-                    self.monsters[monster["name"]].traits[index] = self.monsters[monster["name"]].traits[index].replace("</strong>", "").replace(".</em>", "").replace("</p>", "")
-
             if "Actions" in monster:
-                self.monsters[monster["name"]].actions = monster["Actions"].split("<p><em><strong>")
+                actions = monster["Actions"].replace("</p>", "").replace(".</strong></em>", ":")
+                self.monsters[monster["name"]].actions = actions.split("<p><em><strong>")
                 self.monsters[monster["name"]].actions.pop(0)
             if "Legendary Actions" in monster:
-                self.monsters[monster["name"]].legendaryActions = monster["Legendary Actions"]
+                lactions = monster["Legendary Actions"].replace("</p>", "").replace(".</strong></em>", ":").replace("</strong></em>", "")
+                self.monsters[monster["name"]].legendaryActions = lactions.split("<p><em><strong>")
+                self.monsters[monster["name"]].legendaryActions.pop(0)
             self.monsters[monster["name"]].img = monster["img_url"]
 
     def __str__(self):
@@ -252,12 +252,22 @@ class monsterManager:
             output += "languages" + ": " + str(self.monsters[monster].languages) + "\n"
             output += "challenge" + ": " + str(self.monsters[monster].challenge) + "\n"
             output += "damageImmunities" + ": " + str(self.monsters[monster].damageImmunities) + "\n"
-            output += "senses" + ": " + str(self.monsters[monster].senses) + "\n"
+            if len(self.monsters[monster].senses) > 0:
+                output += "senses" + ": " + "\n"
+                for sense in self.monsters[monster].senses:
+                    output += "    " + sense + "\n"
             if len(self.monsters[monster].traits) > 0:
-                output += "traits" + ": " + str(self.monsters[monster].traits) + "\n"
-            output += "actions" + ": " + str(self.monsters[monster].actions) + "\n"
+                output += "traits" + ": " + "\n"
+                for trait in self.monsters[monster].traits:
+                    output += "    " + trait + "\n"
+            if len(self.monsters[monster].actions) > 0:
+                output += "actions" + ": " + "\n"
+                for action in self.monsters[monster].actions:
+                    output += "    " + action + "\n"
             if len(str(self.monsters[monster].legendaryActions)) > 0:
-                output += "legendaryActions" + ": " + str(self.monsters[monster].legendaryActions) + "\n"
+                output += "legendaryActions" + ": " + "\n"
+                for legendaryAction in self.monsters[monster].legendaryActions:
+                    output += "    " + legendaryAction + "\n"
             output += "img" + ": " + str(self.monsters[monster].img) + "\n\n"
         return output
 
