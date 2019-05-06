@@ -33,6 +33,22 @@ def characterManagerTest():
     status &= test("setActive",manager.setActive(characterName,authorName))
     status &= test("getActive",manager.getActive(authorName),characterName)
 
+    #Test set Class
+    status &= test("get class when not set",manager.getClass(authorName),False)
+    status &= test("set Class to fake class",manager.setClass(authorName,"Ranger lol"),False)
+    status &= test("set Class to real class",manager.setClass(authorName,"Ranger"),True)
+    status &= test("get class when set",manager.getClass(authorName),"Ranger")
+
+    startingHealth = manager.characters[authorName][characterName].gofuckyourself["maxHealth"]
+    levelStatus = True
+    healthStatus = True
+    for i in range(20):
+        levelStatus &= manager.levelUp(authorName) is 1+i+1
+        healthStatus &= manager.characters[authorName][characterName].gofuckyourself["maxHealth"] > startingHealth
+        startingHealth = manager.characters[authorName][characterName].gofuckyourself["maxHealth"]
+    status &= test("level up character",levelStatus)
+    status &= test("health up character",healthStatus)
+    
     test("characterManager Test",status)
 
 def raceManagerTest():
@@ -47,7 +63,7 @@ def classManagerTest():
     print("\nclassManager Test Start")
     status  = True
     status &= test("load classes",len(classMgr.classes) > 0)
-    print(classMgr)
+    #print(classMgr)
     test("classManager Test",status)
 
 
