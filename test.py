@@ -1,10 +1,13 @@
 from characterManager import *
+import sys
 
 characterName = "Froodo"
 authorName = "Esteban"
 gameName = "Lord Of The Rings"
 gameName2 = "Kung Fu Hustle"
 gameSize = 4
+encounterName = "Battle For Smaug"
+encounterName2 = "Taco Rush"
 
 
 def test(testName,condition,expectedValue = True):
@@ -84,11 +87,70 @@ def gameTest():
         else:
             status &= test(testName, game.addPlayer(playerName, characterName))
     status &= test("Deleting Player 1 from game", game.deletePlayer("player 1"))
+    status &= test("Get all games", len(game.getGames()) > 0)
+    print(game)
+
+def encounterTest():
+    authorName = "Esteban"
+    gameName = "Lord Of The Rings"
+    gameSize = 4
+    encounterName = "Battle For Smaug"
+    encounterName2 = "Taco Rush"
+
+    print("\nTesting Encounter creation commands")
+    status = True
+    game = gameManager()
+    characterMgr = characterManager()
+    print("New Game Creation")
+    status &= test("New Game", game.addGame(gameName, gameSize))
+    status &= test("setActive", game.setActive(gameName))
+
+    print("Making NPC Characters for encounters")
+    status &= test("New Smaug Character", characterMgr.addCharacter("Smaug", authorName))
+    status &= test("New Bilbo Character", characterMgr.addCharacter("Bilbo", authorName))
+
+    print("\nNew Encounter Creation")
+    status &= test("New Encounter", game.addEncounter(encounterName))
+    status &= test("setActive Encounter", game.setActiveEncounter(encounterName))
+    status &= test("Add Zombie to active Encounter", game.addMonster("Zombie"))
+    status &= test("Add Zombie to active Encounter", game.addMonster("Zombie"))
+    status &= test("Add Zombie to active Encounter", game.addMonster("Zombie"))
+    status &= test("get active Encounter", game.getActiveEncounter(), encounterName)
+    status &= test("New Encounter 2", game.addEncounter(encounterName2))
+    status &= test("setActive when Encounter is already active", game.setActiveEncounter(encounterName2), False)
+    status &= test("Deactiveate Encounter", game.deActiveEncounter())
+    status &= test("setActive Encounter 2", game.setActiveEncounter(encounterName2))
+    status &= test("getActive", game.getActiveEncounter(), encounterName2)
+    status &= test("Should not be able to add snek to active Encounter", game.addMonster("snek"), False)
+    status &= test("Add Zombie to active Encounter", game.addMonster("Zombie"))
+    status &= test("Add Zombie to active Encounter", game.addMonster("Zombie"))
+    status &= test("Add Zombie to active Encounter", game.addMonster("Zombie"))
+    status &= test("Add Aboleth to active Encounter", game.addMonster("Aboleth"))
+    status &= test("Get all encounters", len(game.getEncounters()) > 0)
+    print("\n")
+    # print(game)
+
+
+def monsterManagerTest():
+    print("\nTesting Monsters")
+    status = True
+    game = gameManager()
+    monsterMgr = monsterManager()
+    status &= test("load monsters", len(monsterMgr.monsters) > 0)
+    status &= test("Get Zombie", sys.getsizeof(game.getMonster("Zombie")) > 0)
+    # print(monsterMgr)
+
+
+#characterManagerTest()
+#UtilityTest()
+#gameTest()
+#raceManagerTest()
+#classManagerTest()
+encounterTest()
+# monsterManagerTest()
 
 
 
-characterManagerTest()
-UtilityTest()
-gameTest()
-raceManagerTest()
-classManagerTest()
+
+
+
