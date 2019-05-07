@@ -5,8 +5,7 @@ from random import randint
 import re
 import json
 
-from characterManager import characterManager
-from characterManager import Utility
+from characterManager import *
 TOKEN = 'NTYzMDUxMTA2ODkzMDM3NTk4.XKTzBA.kCuGuv8Onok8NZZm1Q5TfPfrGAc'
 
 prefix = "!"
@@ -26,7 +25,7 @@ with open('./json/mechanics.json', encoding="utf8") as file:
 
 # Character creation stuff
 characters = characterManager()
-utility = Utility()
+games = gameManager()
 
 @client.event
 async def on_voice_state_update(before, after):
@@ -356,6 +355,33 @@ async def removeLanguage(ctx, language):
     await ctx.send("Removed " + language)
 
 # TODO DM can create a game
+@client.command(aliases=['ng'])
+@commands.has_role('DM')
+async def newGame(ctx, name, size):
+    games.addGame(name, size)
+    message = "'''" + name + "has been created.'''"
+    await ctx.send(message)
+
+
+@client.command(aliases=['ag'])
+@commands.has_role('DM')
+async def activeGame(ctx, gameName):
+    games.setActive(gameName)
+    message = "'''" + gameName + "is now active.'''"
+    await ctx.send(message)
+
+
+@client.command(aliases=['g'])
+async def gameList(ctx):
+    gameList = games.getGames()
+    message = ""
+    message += "'''These are all the games:\n"
+    for game in gameList:
+        message += game + "\n"
+    message += "'''"
+    await ctx.send(message)
+
+
 # TODO The game has a dictionary of all the players and the characters that they are playing
 # TODO DM can show all games that is on the server and set a game to active
 # TODO DM can kick players out of a game

@@ -203,7 +203,8 @@ class Encounter:
                 output += "    " + elem + "\n"
         return output
 
-    # def startEncounter(self):
+    def startEncounter(self):
+        self.active = True
         # All players and monsters roll for initiative (1d20 + dex modifier)
         # Add players/monsters to initiativeTrack list to keep track of who is doing actions in what order
         # If there is a tie ???? re roll to see who goes first?? randomly pick???
