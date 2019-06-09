@@ -1,6 +1,5 @@
 # Character creation stuff
 from random import randint
-from pprint import pprint
 import re
 import json
 
@@ -41,6 +40,7 @@ class gameManager:
         try:
             for game in self.games:
                 if self.games[game].active is True:
+                    #print(game)
                     return game
         except:
             return False
@@ -54,21 +54,21 @@ class gameManager:
         except:
             return False
 
-    def addPlayer(self, playerName, activeCharacterName):
+    def addPlayer(self, characterName):
         try:
             game = self.getActive()
             if len(self.games[game].players) < self.games[game].size:
-                self.games[game].players[playerName] = activeCharacterName
+                self.games[game].players[characterName].append(characterName)
                 return True
             else:
                 return False
         except:
             return False
 
-    def deletePlayer(self, playerName):
+    def deletePlayer(self, characterName):
         try:
             game = self.getActive()
-            self.games[game].players.pop(playerName, None)
+            self.games[game].players.pop(characterName, None)
             return True
         except:
             return False
@@ -178,6 +178,8 @@ class Game:
         output += "Name: " + self.name + "\n"
         output += "Active: " + str(self.active) + "\n"
         output += "Max Players: " + str(self.size) + "\n"
+        output += "Description: " + str(self.description) + "\n"
+        output += "Encounters: " + str(self.encounters) + "\n"
         for player in self.players:
             output += player + ": " + str(self.players[player]) + "\n"
         for encounter in self.encounters:
@@ -190,7 +192,7 @@ class Encounter:
         self.name = name
         self.active = active
         self.monsters = []
-        self.description = ""
+        self.description = "Not set yet"
         self.initiativeTrack = []
 
     def __str__(self):
@@ -422,12 +424,12 @@ class characterManager:
 
     def getCharacters(self, owner):
         try:
-            print("getting the character")
+            # print("getting the character")
             print(self.characters[owner])
             characters = []
 
             for key,value in self.characters[owner].items():
-                print(value)
+                # print(value)
                 characters.append(str(value))
             return characters
         except:

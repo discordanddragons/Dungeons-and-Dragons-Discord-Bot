@@ -83,9 +83,9 @@ def gameTest():
         characterName = "character " + str(i)
         testName = "Add" + playerName
         if i == 5:
-            status &= test("Player 5 should not be added", game.addPlayer(playerName, characterName), False)
+            status &= test("Player 5 should not be added", game.addPlayer(playerName), False)
         else:
-            status &= test(testName, game.addPlayer(playerName, characterName))
+            status &= test(testName, game.addPlayer(playerName))
     status &= test("Deleting Player 1 from game", game.deletePlayer("player 1"))
     status &= test("Get all games", len(game.getGames()) > 0)
     print(game)
@@ -128,6 +128,7 @@ def encounterTest():
     status &= test("Add Aboleth to active Encounter", game.addMonster("Aboleth"))
     status &= test("Get all encounters", len(game.getEncounters()) > 0)
     print("\n")
+    test("Encounter Test", status)
     # print(game)
 
 

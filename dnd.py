@@ -1,9 +1,6 @@
 # Work with Python 3.6
 import discord
 from discord.ext import commands
-from random import randint
-import re
-import json
 
 from characterManager import *
 TOKEN = 'NTYzMDUxMTA2ODkzMDM3NTk4.XKTzBA.kCuGuv8Onok8NZZm1Q5TfPfrGAc'
@@ -49,7 +46,7 @@ async def on_voice_state_update(before, after):
 
 @client.event
 async def on_message(message):
-    print(message)
+    # print(message)
     await client.process_commands(message)
 
 
@@ -193,7 +190,7 @@ async def me(ctx):
 @client.command()
 async def flip(ctx):
     """Flips a coin."""
-    flip = utility.flip()
+    flip = characterManager.flip()
     print(flip)
     await ctx.send(flip)
 
@@ -219,7 +216,7 @@ async def roll(ctx, roll):
                 print(stat)
                 print(characters.roll(ctx.author, stat))
                 # roll a d20 and add the appropriate modifier
-                roll = utility.roll(1, 20)
+                roll = characterManager.roll(1, 20)
                 await ctx.send(str(roll[0]) + " add th e" + stat + " modifier pls =)")
 
                 # characters.characters[character].getModifier(stat)
@@ -228,7 +225,7 @@ async def roll(ctx, roll):
             diceSplit = re.findall(r"(\d+)d(\d+)", dice)
             rollNumber = int(diceSplit[0][0])
             diceSize = int(diceSplit[0][1])
-            rolls = utility.roll(rollNumber, diceSize)
+            rolls = characterManager.roll(rollNumber, diceSize)
 
             if len(rolls) == 0:
                 print("Please roll a number of dice between 1 and 100")
@@ -371,21 +368,56 @@ async def activeGame(ctx, gameName):
     await ctx.send(message)
 
 
-@client.command(aliases=['g'])
+@client.command()
 async def gameList(ctx):
     gameList = games.getGames()
     message = ""
     message += "'''These are all the games:\n"
     for game in gameList:
+        if game == games.getActive():
+            message += game + ": ACTIVE\n"
+            continue
         message += game + "\n"
     message += "'''"
     await ctx.send(message)
 
 
-# TODO The game has a dictionary of all the players and the characters that they are playing
-# TODO DM can show all games that is on the server and set a game to active
+@client.command(aliases=['ap'])
+@commands.has_role('DM')
+async def addPlayer(ctx, characterName):
+    temp = False
+    game = games.getActive()
+    for member in client.get_all_members():
+        print(member)
+        playersCharacters = characters.getCharacters(member)
+        print(playersCharacters)
+        for character in playersCharacters:
+            print(character)
+            if characterName in character:
+                temp = games.addPlayer(characterName)
+                message = characterName + "is now part of." + game
+                break
+    if temp is False:
+        message = characterName + "is not a part of this server."
+    await ctx.send(message)
+
+
+@client.command(aliases=['dp'])
+@commands.has_role('DM')
+async def deletePlayer(ctx, playerName):
+    game = games.getActive()
+    games.deletePlayer(playerName)
+    message = "'''" + playerName + "has left" + game + "'''"
+    await ctx.send(message)
+
+
+@client.command()
+async def game(ctx):
+    print(str(games))
+    message = str(games)
+    await ctx.send(message)
+
 # TODO DM can kick players out of a game
-# TODO DM can add players to a game
 # TODO Players can join a game
 
 
