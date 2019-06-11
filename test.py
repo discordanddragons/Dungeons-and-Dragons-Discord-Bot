@@ -84,7 +84,7 @@ def gameTest():
     print("\nTesting Game creation commands")
     status = True
     game = gameManager()
-    print("New Game Creation")
+    print("\nNew Game Creation")
     status &= test("New Game", game.addGame(gameName, gameSize))
     status &= test("setActive", game.setActive(gameName))
     status &= test("get active games", game.getActive(), gameName)
@@ -93,6 +93,7 @@ def gameTest():
     status &= test("Deactiveate Game", game.deActive())
     status &= test("setActive game 2", game.setActive(gameName2))
     status &= test("getActive", game.getActive(), gameName2)
+
     print("\nAdd/Delete Players")
     for i in range(1, 6):
         playerName = "player " + str(i)
@@ -104,7 +105,14 @@ def gameTest():
             status &= test(testName, game.addPlayer(playerName))
     status &= test("Deleting Player 1 from game", game.deletePlayer("player 1"))
     status &= test("Get all games", len(game.getGames()) > 0)
+
+    print("\n")
     print(game)
+    print("##############################################################################################################")
+    print("##############################################################################################################")
+    print("##############################################################################################################")
+    print("##############################################################################################################")
+    print("##############################################################################################################")
 
 def encounterTest():
     authorName = "Esteban"
@@ -125,6 +133,9 @@ def encounterTest():
     status &= test("New Smaug Character", characterMgr.addCharacter("Smaug", authorName))
     status &= test("New Bilbo Character", characterMgr.addCharacter("Bilbo", authorName))
 
+    print("\n Adding Players to Game")
+    status &= test("Add Bilbo to the game", game.addPlayer("Bilbo"))
+
     print("\nNew Encounter Creation")
     status &= test("New Encounter", game.addEncounter(encounterName))
     status &= test("setActive Encounter", game.setActiveEncounter(encounterName))
@@ -143,10 +154,14 @@ def encounterTest():
     status &= test("Add Zombie to active Encounter", game.addMonster("Zombie"))
     status &= test("Add Aboleth to active Encounter", game.addMonster("Aboleth"))
     status &= test("Get all encounters", len(game.getEncounters()) > 0)
-    print("\n")
+
     test("Encounter Test", status)
     # print(game)
-
+    print("##############################################################################################################")
+    print("##############################################################################################################")
+    print("##############################################################################################################")
+    print("##############################################################################################################")
+    print("##############################################################################################################")
 
 def monsterManagerTest():
     print("\nTesting Monsters")
@@ -160,9 +175,9 @@ def monsterManagerTest():
 
 #characterManagerTest()
 #UtilityTest()
-#gameTest()
 #raceManagerTest()
 #classManagerTest()
+gameTest()
 encounterTest()
 # monsterManagerTest()
 
