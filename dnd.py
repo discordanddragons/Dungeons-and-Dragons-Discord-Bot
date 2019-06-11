@@ -388,13 +388,10 @@ async def addPlayer(ctx, characterName):
     temp = False
     game = games.getActive()
     for member in client.get_all_members():
-        print(member)
         playersCharacters = characters.getCharacters(member)
-        print(playersCharacters)
         for character in playersCharacters:
-            print(character)
             if characterName in character:
-                temp = games.addPlayer(characterName)
+                temp = games.addPlayer(member)
                 message = characterName + "is now part of." + game
                 break
     if temp is False:

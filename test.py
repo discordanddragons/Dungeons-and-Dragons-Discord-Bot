@@ -84,6 +84,7 @@ def gameTest():
     print("\nTesting Game creation commands")
     status = True
     game = gameManager()
+    manager = characterManager()
     print("New Game Creation")
     status &= test("New Game", game.addGame(gameName, gameSize))
     status &= test("setActive", game.setActive(gameName))
@@ -98,6 +99,7 @@ def gameTest():
         playerName = "player " + str(i)
         characterName = "character " + str(i)
         testName = "Add" + playerName
+        manager.addCharacter(playerName,characterName)
         if i == 5:
             status &= test("Player 5 should not be added", game.addPlayer(playerName), False)
         else:
@@ -160,10 +162,10 @@ def monsterManagerTest():
 
 #characterManagerTest()
 #UtilityTest()
-#gameTest()
+gameTest()
 #raceManagerTest()
 #classManagerTest()
-encounterTest()
+#encounterTest()
 # monsterManagerTest()
 
 
