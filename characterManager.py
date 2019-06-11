@@ -58,7 +58,9 @@ class gameManager:
         try:
             game = self.getActive()
             if len(self.games[game].players) < self.games[game].size:
-                self.games[game].players[characterName].append(characterName)
+                print(self.games[game].players[characterName])
+                #get owner function -> getCharacter set dictionary[characterName] = character
+                self.games[game].players[characterName] = append(characterName)
                 return True
             else:
                 return False
@@ -553,15 +555,12 @@ class characterManager:
 
     def getCharacters(self, owner):
         try:
-            # print("getting the character")
-            print(self.characters[owner])
             characters = []
-
-            for key,value in self.characters[owner].items():
-                # print(value)
-                characters.append(str(value))
+            for character in self.characters[owner]:
+                characters.append(str(character))
             return characters
         except:
+            print("Exception")
             return []
 
     def addSkill(self, owner, skill):

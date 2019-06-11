@@ -99,6 +99,7 @@ def gameTest():
         playerName = "player " + str(i)
         characterName = "character " + str(i)
         testName = "Add" + playerName
+        manager.addCharacter(playerName,characterName)
         if i == 5:
             status &= test("Player 5 should not be added", game.addPlayer(playerName), False)
         else:
