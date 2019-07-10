@@ -1,4 +1,7 @@
 from characterManager import *
+from class_manager import ClassManager
+from game_manager import GameManager
+from monster_manager import MonsterManager
 import sys
 
 characterName = "Froodo"
@@ -59,7 +62,7 @@ def raceManagerTest():
     test("raceManager Test",status)
 
 def classManagerTest():
-    classMgr = classManager()
+    classMgr = ClassManager()
     print("\nclassManager Test Start")
     status  = True
     status &= test("load classes",len(classMgr.classes) > 0)
@@ -83,7 +86,7 @@ def UtilityTest():
 def gameTest():
     print("\nTesting Game creation commands")
     status = True
-    game = gameManager()
+    game = GameManager()
     print("New Game Creation")
     status &= test("New Game", game.addGame(gameName, gameSize))
     status &= test("setActive", game.setActive(gameName))
@@ -115,7 +118,7 @@ def encounterTest():
 
     print("\nTesting Encounter creation commands")
     status = True
-    game = gameManager()
+    game = GameManager()
     characterMgr = characterManager()
     print("New Game Creation")
     status &= test("New Game", game.addGame(gameName, gameSize))
@@ -150,9 +153,10 @@ def encounterTest():
 def monsterManagerTest():
     print("\nTesting Monsters")
     status = True
-    game = gameManager()
-    monsterMgr = monsterManager()
+    game = GameManager()
+    monsterMgr = MonsterManager()
     status &= test("load monsters", len(monsterMgr.monsters) > 0)
+    # TODO: put in game manager test
     status &= test("Get Zombie", sys.getsizeof(game.getMonster("Zombie")) > 0)
     # print(monsterMgr)
 
